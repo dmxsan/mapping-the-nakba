@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* MapLibre GL CSS is imported in WebGISViewer.vue */
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent;
+  border: none;
+}
+
+.marker-active {
+  animation: markerGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes markerGlow {
+  0%, 100% { 
+    filter: drop-shadow(0 0 8px rgba(25, 118, 210, 0.8));
+  }
+  50% { 
+    filter: drop-shadow(0 0 16px rgba(25, 118, 210, 1));
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Button transitions */
+button {
+  transition: all 0.2s ease;
+}
+
+/* Layer item transitions */
+.layer-item {
+  transition: all 0.2s ease;
+}
+
+.layer-item:hover {
+  border-color: #1976D2;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.1);
+}
+
+/* Source link styling */
+.source-link {
+  @apply text-primary-600 hover:text-primary-800 transition-colors;
+}
+
+/* Event badge styling */
+.event-badge {
+  @apply text-xs px-2 py-1 rounded-full font-semibold uppercase;
+}
+
+.event-badge.period {
+  @apply bg-primary-50 text-primary-600;
+}
+
+.event-badge.specific {
+  @apply bg-green-50 text-green-600;
+}
+
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid #1976D2;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
