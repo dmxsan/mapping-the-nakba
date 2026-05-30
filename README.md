@@ -51,7 +51,7 @@ Output goes to `vue/dist/`.
 
 ## Deploy
 
-Deployed on [Vercel](https://vercel.com). Configuration in `vue/vercel.json`.
+Deployed on [Vercel](https://mapping-the-nakba.vercel.app). Configuration in `vue/vercel.json`.
 
 ## License
 
