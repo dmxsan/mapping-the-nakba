@@ -306,6 +306,10 @@ const updateAllMarkerSizes = () => {
     updateSvg(marker.getElement() as HTMLDivElement, MARKER_SIZES.village)
   })
 
+  visibleVillageMarkers.value.forEach(marker => {
+    updateSvg(marker.getElement() as HTMLDivElement, MARKER_SIZES.village)
+  })
+
   if (selectedEvent.value) {
     updateMarkerHighlight(selectedEvent.value.event_id)
   } else {
@@ -323,6 +327,7 @@ const markersRef = {
 
 const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
+const visibleVillageMarkers = ref<any[]>([])
 
 const calculateCentroid = (coords: number[][][]): [number, number] => {
   const ring = coords[0]
@@ -343,6 +348,34 @@ const clearEventRegion = () => {
   regionLabelMarkers.value = []
   regionPointMarkers.value.forEach(m => m.remove())
   regionPointMarkers.value = []
+  clearVillages()
+}
+
+const showVillages = (eventId: string) => {
+  clearVillages()
+  if (!map) return
+  
+  const linked = villages.filter(v => v.eventId === eventId)
+  linked.forEach(v => {
+    const el = createVillageMarker(v)
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([v.coordinates[1], v.coordinates[0]])
+      .setPopup(
+        new maplibregl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(`
+          <div style="font-family: system-ui, sans-serif; padding: 8px;">
+            <strong style="color: #D32F2F; font-size: 14px;">${v.name}</strong><br/>
+            <span style="font-size: 12px; color: #666;">${v.fate} · ${v.year}</span>
+          </div>
+        `)
+      )
+      .addTo(map!)
+    visibleVillageMarkers.value.push(marker)
+  })
+}
+
+const clearVillages = () => {
+  visibleVillageMarkers.value.forEach(m => m.remove())
+  visibleVillageMarkers.value = []
 }
 
 const showEventRegion = (eventId: string) => {
@@ -434,6 +467,7 @@ const showEventRegion = (eventId: string) => {
       regionPointMarkers.value.push(pointMarker)
     }
   })
+  showVillages(eventId)
 }
 
 const fitMapToRegions = (eventId: string) => {
@@ -602,22 +636,6 @@ const addMarkers = () => {
       )
       .addTo(map!)
     markersRef.cities.set(city.name, marker)
-  })
-
-  villages.forEach(village => {
-    const el = createVillageMarker(village)
-    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-      .setLngLat([village.coordinates[1], village.coordinates[0]])
-      .setPopup(
-        new maplibregl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(`
-          <div style="font-family: system-ui, sans-serif; padding: 8px;">
-            <strong style="color: #D32F2F; font-size: 14px;">${village.name}</strong><br/>
-            <span style="font-size: 12px; color: #666;">Depopulated Village (${village.year})</span>
-          </div>
-        `)
-      )
-      .addTo(map!)
-    markersRef.villages.push(marker)
   })
 
   timelineEvents.value.forEach(event => {

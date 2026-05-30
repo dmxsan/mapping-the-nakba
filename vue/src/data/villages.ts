@@ -38,7 +38,7 @@ export const villages: Village[] = [
   // === Operation Cast Lead 2008 ===
   { id: 'beit-lahia', name: 'Beit Lahia', coordinates: [31.5500, 34.4978], year: 2008, fate: 'Destroyed', eventId: 'operation-cast-lead-2008', type: 'village' },
   { id: 'al-atatra', name: 'Al-Atatra', coordinates: [31.5610, 34.4805], year: 2008, fate: 'Destroyed', eventId: 'operation-cast-lead-2008', type: 'village' },
-  { id: 'izbet-abed-rabbo', name: 'Izbet Abed Rabbo', coordinates: [31.4803, 34.5099], year: 2008, fate: 'Destroyed', eventId: 'operation-cast-lead-2008', type: 'village' },
+  { id: 'izbet-abed-rabbo', name: 'Izbet Abed Rabbo', coordinates: [31.48, 34.48], year: 2008, fate: 'Destroyed', eventId: 'operation-cast-lead-2008', type: 'village' },
 
   // === Operation Protective Edge 2014 ===
   { id: 'shujaiyya', name: 'Shuja\'iyya', coordinates: [31.5010, 34.4826], year: 2014, fate: 'Destroyed', eventId: 'operation-protective-edge-2014', type: 'village' },
