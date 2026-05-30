@@ -58,7 +58,7 @@
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15,18 9,12 15,6"></polyline>
         </svg>
-        Previous
+        <span class="btn-label">Previous</span>
       </button>
       
       <button 
@@ -76,7 +76,7 @@
         <svg v-else viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
         </svg>
-        {{ playButtonLabel }}
+        <span class="btn-label">{{ playButtonLabel }}</span>
       </button>
       
       <button 
@@ -85,7 +85,7 @@
         :disabled="selectedIndex === events.length - 1"
         aria-label="Next event"
       >
-        Next
+        <span class="btn-label">Next</span>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="9,18 15,12 9,6"></polyline>
         </svg>
@@ -483,5 +483,46 @@ defineExpose({
   background: #1565C0;
   border-color: #1565C0;
   color: white;
+}
+
+@media (max-width: 768px) {
+  .timeline-slider-container {
+    padding: 12px;
+  }
+
+  .timeline-range {
+    touch-action: manipulation;
+  }
+
+  .event-label,
+  .event-label::before {
+    display: none;
+  }
+
+  .event-marker.active .event-label {
+    display: block;
+  }
+
+  .event-tooltip {
+    max-width: 180px;
+    white-space: normal;
+    overflow-wrap: break-word;
+    font-size: 0.75rem;
+  }
+
+  .event-marker::after {
+    content: '';
+    position: absolute;
+    top: -16px;
+    left: -16px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn-label {
+    display: none;
+  }
 }
 </style>
