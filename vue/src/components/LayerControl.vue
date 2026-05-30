@@ -39,11 +39,11 @@
             <div class="control-header">
               <span>Year</span>
             </div>
-            <div class="year-pills">
+            <div class="year-segmented">
               <button
                 v-for="y in layer.years"
                 :key="y"
-                class="year-pill"
+                class="year-segment"
                 :class="{ selected: layer.selectedYear === y }"
                 @click="selectYear(layer, y)"
               >{{ y }}</button>
@@ -335,33 +335,39 @@ const resetLayers = () => {
   border-bottom: 1px dashed #e8e8e8;
 }
 
-.year-pills {
+.year-segmented {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.year-pill {
-  padding: 4px 10px;
   border: 1px solid #d0d0d0;
   border-radius: 6px;
+  overflow: hidden;
+}
+
+.year-segment {
+  flex: 1;
+  padding: 5px 0;
+  text-align: center;
+  border: none;
   background: white;
   color: #666;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
-  line-height: 1.4;
+  border-right: 1px solid #e0e0e0;
+  font-family: inherit;
 }
 
-.year-pill:hover {
-  border-color: #1976D2;
+.year-segment:last-child {
+  border-right: none;
+}
+
+.year-segment:hover {
+  background: #E3F2FD;
   color: #1976D2;
 }
 
-.year-pill.selected {
+.year-segment.selected {
   background: #1976D2;
-  border-color: #1976D2;
   color: white;
 }
 
