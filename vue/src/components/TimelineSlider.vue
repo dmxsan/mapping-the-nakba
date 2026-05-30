@@ -15,7 +15,7 @@
           v-for="(event, index) in events"
           :key="event.event_id"
           class="event-marker"
-          :class="{ active: selectedIndex === index }"
+          :class="{ active: selectedIndex === index, above: index % 2 === 0 }"
           :style="{ left: `${getEventPosition(index)}%` }"
           @click.stop="clickEvent(index)"
           @mouseenter="hoveredEvent = index"
@@ -344,6 +344,32 @@ defineExpose({
 .event-marker.active .event-label {
   color: #1976D2;
   font-weight: 600;
+}
+
+.event-marker.above .event-label {
+  top: auto;
+  bottom: 22px;
+}
+
+.event-label::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
+  height: 8px;
+  background: #d0d0d0;
+  top: -9px;
+}
+
+.event-marker.above .event-label::before {
+  top: auto;
+  bottom: -9px;
+}
+
+.event-marker.active .event-label::before {
+  background: #1976D2;
+  width: 2px;
 }
 
 .event-tooltip {
