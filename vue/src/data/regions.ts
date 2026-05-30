@@ -92,7 +92,7 @@ export const EVENT_REGIONS: Record<string, string[]> = {
   'operation-cast-lead-2008': ['gaza'],
   'operation-pillar-of-defense-2012': ['gaza'],
   'operation-protective-edge-2014': ['gaza'],
-  'escalation-2021': ['gaza'],
+  'escalation-2021': ['gaza', 'west-bank', 'jerusalem-area'],
   'gaza-genocide-2023': ['gaza']
 }
 
