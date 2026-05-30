@@ -183,7 +183,7 @@ export const events: HistoricalEvent[] = [
     titleAr: 'حرب الإبادة على غزة',
     dateType: 'period',
     startDate: '2023-10-07',
-    endDate: '2026-01-19',
+    endDate: 'present',
     description: 'Israeli military onslaught on Gaza. 73,000+ Palestinians killed. Systematic destruction of civilian infrastructure, health facilities, universities, and cultural heritage. ICJ found plausible risk of genocide. ICC issued arrest warrants. 90%+ of population displaced.',
     coordinates: [31.5, 34.47],
     casualties: '73,000+',
