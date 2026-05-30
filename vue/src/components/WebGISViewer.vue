@@ -100,6 +100,10 @@
               <span class="legend-marker event"></span>
               <span>Historical Events</span>
             </div>
+            <div class="legend-item">
+              <span class="legend-marker region"></span>
+              <span>Impacted Area</span>
+            </div>
           </div>
         </div>
       </main>
@@ -1083,6 +1087,15 @@ onUnmounted(() => {
 
 .legend-marker.event {
   background: #1976D2;
+}
+
+.legend-marker.region {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: #1565C0;
+  opacity: 0.6;
+  border: 1px solid #0D47A1;
 }
 
 :deep(.marker-icon) {
