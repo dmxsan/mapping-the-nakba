@@ -451,7 +451,7 @@ const fitMapToRegions = (eventId: string) => {
   })
 
   map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
-    padding: { top: 40, bottom: 140, left: 80, right: 380 },
+    padding: { top: 40, bottom: 140, left: 200, right: 380 },
     duration: 1500,
     essential: true
   })
