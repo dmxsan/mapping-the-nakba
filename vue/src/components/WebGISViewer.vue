@@ -1240,13 +1240,48 @@ onUnmounted(() => {
   }
   
   .event-info-panel {
-    width: calc(100% - 48px);
-    left: 24px;
-    right: 24px;
-    bottom: 50%;
-    margin-bottom: 16px;
-    max-height: 35vh;
+    position: absolute;
+    bottom: 45vh;
+    left: 0;
+    right: 0;
+    width: 100%;
+    padding: 8px 16px;
+    border-radius: 0;
+    margin: 0;
+    max-height: none;
     overflow-y: auto;
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 8px;
+  }
+
+  .event-info-panel .close-btn {
+    order: 1;
+  }
+
+  .event-info-panel .event-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .event-info-panel .event-header h3 {
+    font-size: 0.85rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .event-info-panel .event-header .arabic-title,
+  .event-info-panel .event-date,
+  .event-info-panel .event-description,
+  .event-info-panel .event-meta,
+  .event-info-panel .event-sources {
+    display: none;
   }
   
   .legend {
