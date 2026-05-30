@@ -16,3 +16,6 @@ plans/
 
 # QGIS metadata
 *.qmd
+
+# chat history exports
+*chat-history.md
