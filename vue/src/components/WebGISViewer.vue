@@ -521,6 +521,13 @@ const showEventRegion = (eventId: string) => {
   showVillages(eventId)
 }
 
+const getMapPadding = () => {
+  if (window.innerWidth < 768) {
+    return { top: 60, bottom: 180, left: 20, right: 20 }
+  }
+  return { top: 40, bottom: 140, left: 200, right: 380 }
+}
+
 const fitMapToRegions = (eventId: string) => {
   const regionIds = EVENT_REGIONS[eventId] || []
   if (regionIds.length === 0 || !map) return
@@ -540,7 +547,7 @@ const fitMapToRegions = (eventId: string) => {
   })
 
   map.fitBounds([[minLng, minLat], [maxLng, maxLat]], {
-    padding: { top: 40, bottom: 140, left: 200, right: 380 },
+    padding: getMapPadding(),
     duration: 1500,
     essential: true
   })
@@ -1221,7 +1228,8 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     width: 100%;
-    height: 45%;
+    max-height: 45vh;
+    overflow-y: auto;
     z-index: 100;
     border-right: none;
     border-top: 1px solid #e8e8e8;
@@ -1237,6 +1245,8 @@ onUnmounted(() => {
     right: 24px;
     bottom: 50%;
     margin-bottom: 16px;
+    max-height: 35vh;
+    overflow-y: auto;
   }
   
   .legend {
@@ -1244,6 +1254,23 @@ onUnmounted(() => {
     top: 16px;
     left: 16px;
     padding: 10px 14px;
+  }
+
+  .header-content {
+    padding: 0.4rem 1rem 0.3rem 1rem;
+  }
+
+  .header-title-en {
+    font-size: clamp(1rem, 4vw, 1.35rem);
+  }
+
+  .header-title-ar {
+    font-size: clamp(0.8rem, 3.5vw, 1.05rem);
+  }
+
+  .header-subtitle {
+    font-size: clamp(0.6rem, 2.5vw, 0.8rem);
+    white-space: normal;
   }
 }
 </style>
