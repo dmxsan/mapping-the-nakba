@@ -1145,8 +1145,8 @@ onUnmounted(() => {
 
 .legend-marker.village {
   background: #D32F2F;
-  border-radius: 2px;
-  transform: rotate(45deg);
+  border-radius: 50%;
+  border: 2px solid white;
 }
 
 .legend-marker.event {
