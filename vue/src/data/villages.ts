@@ -3,7 +3,7 @@ import type { Village } from '@/types'
 export const villages: Village[] = [
   // === Nakba 1948 ===
   { id: 'deir-yassin', name: 'Deir Yassin', coordinates: [31.7868, 35.1784], year: 1948, fate: 'Massacre', eventId: 'nakba-1948', type: 'village' },
-  { id: 'tantura', name: 'Tantura', coordinates: [32.6085, 34.9007], year: 1948, fate: 'Massacre', eventId: 'nakba-1948', type: 'village' },
+  { id: 'tantura', name: 'Tantura', coordinates: [32.6082, 34.8956], year: 1948, fate: 'Massacre', eventId: 'nakba-1948', type: 'village' },
   { id: 'al-majdal', name: 'Al-Majdal', coordinates: [31.6676, 34.5657], year: 1948, fate: 'Depopulated', eventId: 'nakba-1948', type: 'village' },
   { id: 'lifta', name: 'Lifta', coordinates: [31.7916, 35.1958], year: 1948, fate: 'Depopulated', eventId: 'nakba-1948', type: 'village' },
   { id: 'ein-karem', name: 'Ein Karem', coordinates: [31.7614, 35.1654], year: 1948, fate: 'Depopulated', eventId: 'nakba-1948', type: 'village' },
