@@ -302,14 +302,6 @@ const updateAllMarkerSizes = () => {
     updateSvg(marker.getElement() as HTMLDivElement, MARKER_SIZES.city)
   })
 
-  markersRef.villages.forEach(marker => {
-    updateSvg(marker.getElement() as HTMLDivElement, MARKER_SIZES.village)
-  })
-
-  visibleVillageMarkers.value.forEach(marker => {
-    updateSvg(marker.getElement() as HTMLDivElement, MARKER_SIZES.village)
-  })
-
   if (selectedEvent.value) {
     updateMarkerHighlight(selectedEvent.value.event_id)
   } else {
@@ -321,13 +313,11 @@ const updateAllMarkerSizes = () => {
 
 const markersRef = {
   cities: new Map<string, maplibregl.Marker>(),
-  villages: [] as maplibregl.Marker[],
   events: new Map<string, maplibregl.Marker>()
 }
 
 const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
-const visibleVillageMarkers = ref<any[]>([])
 
 const calculateCentroid = (coords: number[][][]): [number, number] => {
   const ring = coords[0]
@@ -351,31 +341,92 @@ const clearEventRegion = () => {
   clearVillages()
 }
 
+const addVillageLayers = () => {
+  if (!map || map.getSource('village-clusters')) return
+  
+  map.addSource('village-clusters', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+    cluster: true,
+    clusterMaxZoom: 12,
+    clusterRadius: 50
+  })
+
+  const beforeLayer = 'palestine-border-line'
+  
+  map.addLayer({
+    id: 'village-cluster-circle',
+    type: 'circle',
+    source: 'village-clusters',
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': '#D32F2F',
+      'circle-opacity': 0.7,
+      'circle-radius': ['step', ['get', 'point_count'], 18, 5, 24, 10, 32, 20, 42]
+    }
+  }, beforeLayer)
+
+  map.addLayer({
+    id: 'village-cluster-count',
+    type: 'symbol',
+    source: 'village-clusters',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': ['get', 'point_count_abbreviated'],
+      'text-size': 13
+    },
+    paint: {
+      'text-color': '#ffffff'
+    }
+  }, beforeLayer)
+
+  map.addLayer({
+    id: 'village-point',
+    type: 'circle',
+    source: 'village-clusters',
+    filter: ['!', ['has', 'point_count']],
+    paint: {
+      'circle-color': '#D32F2F',
+      'circle-radius': 5,
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#ffffff'
+    }
+  }, beforeLayer)
+}
+
 const showVillages = (eventId: string) => {
-  clearVillages()
   if (!map) return
   
   const linked = villages.filter(v => v.eventId === eventId)
-  linked.forEach(v => {
-    const el = createVillageMarker(v)
-    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-      .setLngLat([v.coordinates[1], v.coordinates[0]])
-      .setPopup(
-        new maplibregl.Popup({ offset: 25, className: 'custom-popup' }).setHTML(`
-          <div style="font-family: system-ui, sans-serif; padding: 8px;">
-            <strong style="color: #D32F2F; font-size: 14px;">${v.name}</strong><br/>
-            <span style="font-size: 12px; color: #666;">${v.fate} · ${v.year}</span>
-          </div>
-        `)
-      )
-      .addTo(map!)
-    visibleVillageMarkers.value.push(marker)
+  const source = map.getSource('village-clusters') as maplibregl.GeoJSONSource | undefined
+  if (!source) return
+
+  const features: GeoJSON.Feature[] = linked.map(v => ({
+    type: 'Feature',
+    geometry: { type: 'Point', coordinates: [v.coordinates[1], v.coordinates[0]] },
+    properties: { name: v.name, fate: v.fate, year: v.year }
+  }))
+
+  source.setData({ type: 'FeatureCollection', features })
+
+  // Show layers
+  ;['village-cluster-circle', 'village-cluster-count', 'village-point'].forEach(id => {
+    if (map!.getLayer(id)) map!.setLayoutProperty(id, 'visibility', 'visible')
   })
 }
 
 const clearVillages = () => {
-  visibleVillageMarkers.value.forEach(m => m.remove())
-  visibleVillageMarkers.value = []
+  if (!map) return
+  
+  const source = map.getSource('village-clusters') as maplibregl.GeoJSONSource | undefined
+  if (source) {
+    source.setData({ type: 'FeatureCollection', features: [] })
+  }
+  
+  // Hide layers
+  ;['village-cluster-circle', 'village-cluster-count', 'village-point'].forEach(id => {
+    if (map!.getLayer(id)) map!.setLayoutProperty(id, 'visibility', 'none')
+  })
 }
 
 const showEventRegion = (eventId: string) => {
@@ -564,27 +615,6 @@ const createCityMarker = (_city: { name: string; coordinates: [number, number] }
   return el
 }
 
-const createVillageMarker = (_village: { name: string; coordinates: [number, number] }) => {
-  const { w, h } = MARKER_SIZES.village
-  const scale = getMarkerScale(currentZoom)
-  const sw = Math.round(w * scale)
-  const sh = Math.round(h * scale)
-  const el = document.createElement('div')
-  el.className = 'marker-icon marker-village'
-  el.dataset.type = 'village'
-  el.style.cssText = `
-    cursor: pointer;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
-    line-height: 0;
-  `
-  el.innerHTML = `
-    <svg viewBox="0 0 24 24" width="${sw}" height="${sh}">
-      <rect x="4" y="4" width="16" height="16" fill="#D32F2F" stroke="#fff" stroke-width="2" transform="rotate(45 12 12)"/>
-    </svg>
-  `
-  return el
-}
-
 const createEventMarker = (event: TimelineEvent, isSelected: boolean = false) => {
   const sizeKey = isSelected ? 'eventHighlight' : 'event'
   const { w, h } = MARKER_SIZES[sizeKey]
@@ -616,10 +646,8 @@ const addMarkers = () => {
   if (!map) return
 
   markersRef.cities.forEach(m => m.remove())
-  markersRef.villages.forEach(m => m.remove())
   markersRef.events.forEach(m => m.remove())
   markersRef.cities.clear()
-  markersRef.villages = []
   markersRef.events.clear()
 
   cities.forEach(city => {
@@ -770,6 +798,20 @@ onMounted(() => {
         'fill-outline-color': '#0D47A1'
       }
     })
+
+    addVillageLayers()
+
+    map!.on('click', 'village-point', (e) => {
+      const props = e.features?.[0]?.properties
+      if (!props) return
+      const coords = (e.features![0].geometry as any).coordinates.slice()
+      new maplibregl.Popup({ offset: 25 })
+        .setLngLat(coords)
+        .setHTML(`<strong style="color:#D32F2F">${props.name}</strong><br/><span style="color:#666">${props.fate} · ${props.year}</span>`)
+        .addTo(map!)
+    })
+    map!.on('mouseenter', 'village-point', () => { if (map) map.getCanvas().style.cursor = 'pointer' })
+    map!.on('mouseleave', 'village-point', () => { if (map) map.getCanvas().style.cursor = '' })
 
     addMarkers()
 
