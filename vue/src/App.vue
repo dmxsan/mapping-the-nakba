@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Analytics } from '@vercel/analytics/vue'
+import { inject } from '@vercel/analytics'
 import WebGISViewer from '@/components/WebGISViewer.vue'
+
+inject()
 </script>
 
 <template>
   <WebGISViewer />
-  <Analytics />
 </template>
