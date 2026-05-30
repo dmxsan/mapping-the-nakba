@@ -104,6 +104,10 @@
               <span class="legend-marker region"></span>
               <span>Impacted Area</span>
             </div>
+            <div class="legend-item">
+              <span class="legend-marker border"></span>
+              <span>Palestine Border</span>
+            </div>
           </div>
         </div>
       </main>
@@ -1096,6 +1100,15 @@ onUnmounted(() => {
   background: #1565C0;
   opacity: 0.6;
   border: 1px solid #0D47A1;
+}
+
+.legend-marker.border {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  background: transparent;
+  border: 2px solid #8B6914;
+  opacity: 0.7;
 }
 
 :deep(.marker-icon) {
