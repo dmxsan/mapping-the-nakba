@@ -47,9 +47,9 @@ export const events: HistoricalEvent[] = [
     coordinates: [31.8996, 35.2042], // Ramallah - PNA headquarters
     location: 'Washington DC & Ramallah',
     sources: [
-      { name: 'Oslo I Accord', url: 'https://peacemaker.un.org/israelopt-osloaccord93' },
+      { name: 'Oslo I Accord', url: 'https://digitallibrary.un.org/record/861055' },
       { name: 'PLO-Israel Letters', url: 'https://digitallibrary.un.org/record/183054' },
-      { name: 'PASSIA', url: 'https://www.passia.org/themes/42' }
+      { name: 'PASSIA', url: 'https://www.passia.org' }
     ]
   },
   {
@@ -101,7 +101,7 @@ export const events: HistoricalEvent[] = [
     villagesDestroyed: undefined,
     location: 'Gaza Strip',
     sources: [
-      { name: 'Gaza Health Ministry', url: 'https://moh.gov.ps/portal/category/data-statistics/' },
+      { name: 'Gaza Health Ministry', url: 'https://moh.gov.ps' },
       { name: 'UN OCHA', url: 'https://www.ochaopt.org/data/casualties' },
       { name: 'Human Rights Watch', url: 'https://www.hrw.org/middle-east/north-africa/israel/palestine' },
       { name: 'Amnesty International', url: 'https://www.amnesty.org/en/location/middle-east-and-north-africa/israel-and-occupied-palestinian-territories/' }
@@ -154,8 +154,8 @@ export const events: HistoricalEvent[] = [
     refugeesCreated: '500,000 displaced',
     location: 'Gaza Strip',
     sources: [
-      { name: 'UN OCHA 2014 Gaza Crisis', url: 'https://www.ochaopt.org/content/2014-gaza-conflict-key-figures' },
-      { name: 'Amnesty International Gaza Platform', url: 'https://www.amnesty.org/en/latest/news/2015/07/gaza-platform-launch/' },
+      { name: 'UN OCHA', url: 'https://www.ochaopt.org/data/casualties' },
+      { name: 'Amnesty International', url: 'https://www.amnesty.org/en/location/middle-east-and-north-africa/israel-and-occupied-palestinian-territories/' },
       { name: "B'Tselem", url: 'https://www.btselem.org/topic/gaza_strip/protective_edge' }
     ]
   },
@@ -172,7 +172,7 @@ export const events: HistoricalEvent[] = [
     refugeesCreated: '72,000 displaced',
     location: 'Gaza Strip, West Bank & Jerusalem',
     sources: [
-      { name: 'UN OCHA May 2021', url: 'https://www.ochaopt.org/content/response-escalation-opt-situation-report-no-1' },
+      { name: 'UN OCHA', url: 'https://www.ochaopt.org/data/casualties' },
       { name: 'ICC Palestine', url: 'https://www.icc-cpi.int/palestine' },
       { name: "B'Tselem", url: 'https://www.btselem.org/press_releases/20210523_operation_guardian_of_the_walls' }
     ]
@@ -190,12 +190,12 @@ export const events: HistoricalEvent[] = [
     refugeesCreated: '1.9 million displaced',
     location: 'Gaza Strip',
     sources: [
-      { name: 'Gaza Health Ministry', url: 'https://moh.gov.ps/portal/category/data-statistics/' },
+      { name: 'Gaza Health Ministry', url: 'https://moh.gov.ps' },
       { name: 'UN OCHA OPT', url: 'https://www.ochaopt.org/' },
       { name: 'ICJ South Africa v. Israel', url: 'https://www.icj-cij.org/en/case/192' },
       { name: 'ICC Palestine', url: 'https://www.icc-cpi.int/palestine' },
       { name: 'UNRWA', url: 'https://www.unrwa.org/' },
-      { name: 'Amnesty International', url: 'https://www.amnesty.org/en/latest/campaigns/2024/04/israels-war-on-gaza/' }
+      { name: 'Amnesty International', url: 'https://www.amnesty.org/en/location/middle-east-and-north-africa/israel-and-occupied-palestinian-territories/' }
     ]
   }
 ]
