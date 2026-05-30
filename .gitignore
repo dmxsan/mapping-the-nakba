@@ -3,3 +3,16 @@ dist/
 .DS_Store
 __pycache__/
 *.pyc
+
+# opencode workflow
+.opencode/
+
+# opencode agents
+AGENTS_GUIDE.md
+agents/
+
+# project plans
+plans/
+
+# QGIS metadata
+*.qmd
