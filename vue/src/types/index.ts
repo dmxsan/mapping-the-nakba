@@ -31,7 +31,8 @@ export interface Village {
   name: string
   coordinates: [number, number] // [lat, lng]
   year: number
-  event: string
+  fate: string
+  eventId: string
   type: 'village'
 }
 

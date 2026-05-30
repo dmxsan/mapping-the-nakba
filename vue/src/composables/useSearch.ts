@@ -44,7 +44,7 @@ export function useSearch() {
       items.push({
         id: village.id,
         name: village.name,
-        description: `Depopulated village (${village.year}) - ${village.event}`,
+        description: `Depopulated village (${village.year}) - ${village.fate}`,
         type: 'village',
         data: village,
         coordinates: village.coordinates
