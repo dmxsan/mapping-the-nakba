@@ -95,9 +95,9 @@ export const events: HistoricalEvent[] = [
     dateType: 'period',
     startDate: '2007-06-15',
     endDate: 'present',
-    description: 'Israeli-Egyptian blockade of the Gaza Strip following Hamas takeover. Major escalations include Operation Cast Lead 2008-09 (1,400+ killed), Operation Pillar of Defense 2012 (170+), Operation Protective Edge 2014 (2,200+), May 2021 escalation (250+), and the 2023-26 onslaught which has caused catastrophic civilian loss. The blockade severely restricts movement of people, goods, medical supplies, and humanitarian aid.',
+    description: 'Israeli-Egyptian blockade of the Gaza Strip following Hamas takeover, severely restricting movement of people, goods, medical supplies, and humanitarian aid. The blockade has created what the UN describes as the worlds largest open-air prison, with 2.2 million Palestinians living under severe restrictions on basic necessities.',
     coordinates: [31.42, 34.38],  // central Gaza Strip
-    casualties: '73,000+',
+    casualties: undefined,
     villagesDestroyed: undefined,
     location: 'Gaza Strip',
     sources: [
@@ -105,6 +105,97 @@ export const events: HistoricalEvent[] = [
       { name: 'UN OCHA', url: 'https://www.ochaopt.org/data/casualties' },
       { name: 'Human Rights Watch', url: 'https://www.hrw.org/middle-east/north-africa/israel/palestine' },
       { name: 'Amnesty International', url: 'https://www.amnesty.org/en/location/middle-east-and-north-africa/israel-and-occupied-palestinian-territories/' }
+    ]
+  },
+  {
+    id: 'operation-cast-lead-2008',
+    title: 'Operation Cast Lead',
+    titleAr: 'الرصاص المصبوب',
+    dateType: 'period',
+    startDate: '2008-12-27',
+    endDate: '2009-01-18',
+    description: '22-day Israeli military offensive in Gaza. 1,400+ Palestinians killed, widespread destruction of homes, schools, and infrastructure. UN Fact Finding Mission (Goldstone Report) found evidence of war crimes.',
+    coordinates: [31.5, 34.47],
+    casualties: '1,400+',
+    location: 'Gaza Strip',
+    sources: [
+      { name: 'UN Goldstone Report', url: 'https://www.ohchr.org/en/hr-bodies/hrc/regular-sessions/session12/res-dec-stat' },
+      { name: "B'Tselem", url: 'https://www.btselem.org/topic/gaza_strip/cast_lead' },
+      { name: 'Human Rights Watch', url: 'https://www.hrw.org/middle-east/north-africa/israel/palestine' }
+    ]
+  },
+  {
+    id: 'operation-pillar-of-defense-2012',
+    title: 'Operation Pillar of Defense',
+    titleAr: 'عامود السحاب',
+    dateType: 'period',
+    startDate: '2012-11-14',
+    endDate: '2012-11-21',
+    description: '8-day Israeli military operation in Gaza. 170+ Palestinians killed, hundreds wounded, extensive damage to civilian infrastructure.',
+    coordinates: [31.5, 34.47],
+    casualties: '170+',
+    location: 'Gaza Strip',
+    sources: [
+      { name: "B'Tselem", url: 'https://www.btselem.org/topic/gaza_strip/pillar_of_defense' },
+      { name: 'UN OCHA OPT', url: 'https://www.ochaopt.org/data/casualties' },
+      { name: 'Amnesty International', url: 'https://www.amnesty.org/en/location/middle-east-and-north-africa/israel-and-occupied-palestinian-territories/' }
+    ]
+  },
+  {
+    id: 'operation-protective-edge-2014',
+    title: 'Operation Protective Edge',
+    titleAr: 'الجرف الصامد',
+    dateType: 'period',
+    startDate: '2014-07-08',
+    endDate: '2014-08-26',
+    description: '50-day Israeli military offensive in Gaza. 2,200+ Palestinians killed, including 550+ children. 18,000+ homes destroyed, 500,000 people displaced.',
+    coordinates: [31.5, 34.47],
+    casualties: '2,200+',
+    refugeesCreated: '500,000 displaced',
+    location: 'Gaza Strip',
+    sources: [
+      { name: 'UN OCHA 2014 Gaza Crisis', url: 'https://www.ochaopt.org/content/2014-gaza-conflict-key-figures' },
+      { name: 'Amnesty International Gaza Platform', url: 'https://www.amnesty.org/en/latest/news/2015/07/gaza-platform-launch/' },
+      { name: "B'Tselem", url: 'https://www.btselem.org/topic/gaza_strip/protective_edge' }
+    ]
+  },
+  {
+    id: 'escalation-2021',
+    title: '2021 Gaza Escalation',
+    titleAr: 'معركة سيف القدس',
+    dateType: 'period',
+    startDate: '2021-05-10',
+    endDate: '2021-05-21',
+    description: '11-day escalation across Gaza, West Bank, and Jerusalem. 250+ Palestinians killed in Gaza, including 66 children. 2,000+ homes destroyed, 72,000 displaced.',
+    coordinates: [31.5, 34.47],
+    casualties: '250+',
+    refugeesCreated: '72,000 displaced',
+    location: 'Gaza Strip, West Bank & Jerusalem',
+    sources: [
+      { name: 'UN OCHA May 2021', url: 'https://www.ochaopt.org/content/response-escalation-opt-situation-report-no-1' },
+      { name: 'ICC Palestine', url: 'https://www.icc-cpi.int/palestine' },
+      { name: "B'Tselem", url: 'https://www.btselem.org/press_releases/20210523_operation_guardian_of_the_walls' }
+    ]
+  },
+  {
+    id: 'gaza-genocide-2023',
+    title: 'Gaza Genocide',
+    titleAr: 'حرب الإبادة على غزة',
+    dateType: 'period',
+    startDate: '2023-10-07',
+    endDate: '2026-01-19',
+    description: 'Israeli military onslaught on Gaza. 73,000+ Palestinians killed. Systematic destruction of civilian infrastructure, health facilities, universities, and cultural heritage. ICJ found plausible risk of genocide. ICC issued arrest warrants. 90%+ of population displaced.',
+    coordinates: [31.5, 34.47],
+    casualties: '73,000+',
+    refugeesCreated: '1.9 million displaced',
+    location: 'Gaza Strip',
+    sources: [
+      { name: 'Gaza Health Ministry', url: 'https://moh.gov.ps/portal/category/data-statistics/' },
+      { name: 'UN OCHA OPT', url: 'https://www.ochaopt.org/' },
+      { name: 'ICJ South Africa v. Israel', url: 'https://www.icj-cij.org/en/case/192' },
+      { name: 'ICC Palestine', url: 'https://www.icc-cpi.int/palestine' },
+      { name: 'UNRWA', url: 'https://www.unrwa.org/' },
+      { name: 'Amnesty International', url: 'https://www.amnesty.org/en/latest/campaigns/2024/04/israels-war-on-gaza/' }
     ]
   }
 ]
