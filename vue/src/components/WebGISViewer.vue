@@ -94,7 +94,7 @@
             </div>
             <div class="legend-item">
               <span class="legend-marker village"></span>
-              <span>Historical Villages</span>
+              <span>Affected Villages</span>
             </div>
             <div class="legend-item">
               <span class="legend-marker event"></span>
