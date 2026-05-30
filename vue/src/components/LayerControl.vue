@@ -466,35 +466,7 @@ const resetLayers = () => {
 
 @media (max-width: 768px) {
   .layer-control-container {
-    padding: 12px;
-  }
-
-  .year-segment {
-    min-height: 44px;
-    font-size: 0.8rem;
-  }
-
-  .layer-toggle {
-    padding: 8px 0;
-  }
-
-  .opacity-slider::-webkit-slider-thumb {
-    width: 24px;
-    height: 24px;
-  }
-
-  .source-info {
-    margin-top: 8px;
-    padding-top: 8px;
-  }
-
-  .source-info h4 {
-    font-size: 0.7rem;
-  }
-
-  .source-info li {
-    font-size: 0.75rem;
-    margin-bottom: 2px;
+    padding: 6px 8px;
   }
 }
 </style>

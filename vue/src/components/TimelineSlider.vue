@@ -486,43 +486,71 @@ defineExpose({
 }
 
 @media (max-width: 768px) {
-  .timeline-slider-container {
-    padding: 12px;
+  .timeline-header {
+    margin-bottom: 4px;
   }
 
-  .timeline-range {
-    touch-action: manipulation;
+  .event-label {
+    top: 22px;
+    bottom: auto;
   }
-
-  .event-label,
+  .event-marker.above .event-label {
+    top: 22px;
+    bottom: auto;
+  }
   .event-label::before {
-    display: none;
+    top: -9px;
+    bottom: auto;
   }
-
-  .event-marker.active .event-label {
-    display: block;
+  .event-marker.above .event-label::before {
+    top: -9px;
+    bottom: auto;
   }
 
   .event-tooltip {
-    max-width: 180px;
-    white-space: normal;
-    overflow-wrap: break-word;
-    font-size: 0.75rem;
+    bottom: auto;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 6px 10px;
+    font-size: 0.7rem;
   }
 
-  .event-marker::after {
-    content: '';
-    position: absolute;
-    top: -16px;
-    left: -16px;
-    width: 44px;
-    height: 44px;
+  .event-marker:nth-child(-n+2) .event-tooltip {
+    left: 10px;
+    transform: none;
   }
-}
 
-@media (max-width: 480px) {
-  .btn-label {
-    display: none;
+  .event-marker:nth-child(n+9) .event-tooltip {
+    left: auto;
+    right: 10px;
+    transform: none;
+  }
+
+  .event-tooltip::after {
+    bottom: auto;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top: none;
+    border-bottom: 6px solid #1a1a1a;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+  }
+
+  .event-marker:nth-child(-n+2) .event-tooltip::after {
+    left: 10px;
+    transform: none;
+  }
+
+  .event-marker:nth-child(n+9) .event-tooltip::after {
+    left: auto;
+    right: 10px;
+    transform: none;
   }
 }
 </style>

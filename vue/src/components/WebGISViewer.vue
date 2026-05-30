@@ -523,7 +523,12 @@ const showEventRegion = (eventId: string) => {
 
 const getMapPadding = () => {
   if (window.innerWidth < 768) {
-    return { top: 60, bottom: 180, left: 20, right: 20 }
+    return {
+      top: Math.round(window.innerHeight * 0.1),
+      bottom: Math.round(window.innerHeight * 0.27),
+      left: 20,
+      right: Math.round(window.innerWidth * 0.32)
+    }
   }
   return { top: 40, bottom: 140, left: 200, right: 380 }
 }
@@ -1228,84 +1233,145 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     width: 100%;
-    max-height: 45vh;
+    max-height: 25vh;
     overflow-y: auto;
     z-index: 100;
     border-right: none;
     border-top: 1px solid #e8e8e8;
   }
-  
-  .webgis-content {
+
+  .webgis-map-area {
     position: relative;
   }
-  
+
   .event-info-panel {
     position: absolute;
-    bottom: 45vh;
-    left: 0;
+    top: 0;
     right: 0;
-    width: 100%;
-    padding: 8px 16px;
+    bottom: 25vh;
+    width: 30%;
+    padding: 10px;
+    overflow-y: auto;
     border-radius: 0;
     margin: 0;
-    max-height: none;
-    overflow-y: auto;
-    display: flex;
-    align-items: center;
-    flex-direction: row;
-    gap: 8px;
+    display: block;
+    background: white;
+    box-shadow: -4px 0 12px rgba(0,0,0,0.08);
+    z-index: 50;
   }
 
   .event-info-panel .close-btn {
-    order: 1;
+    position: static;
+    float: right;
+    margin-left: 6px;
   }
 
   .event-info-panel .event-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
+    display: block;
+    padding: 0 4px;
   }
 
   .event-info-panel .event-header h3 {
     font-size: 0.85rem;
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    margin: 0 0 4px 0;
   }
 
-  .event-info-panel .event-header .arabic-title,
-  .event-info-panel .event-date,
-  .event-info-panel .event-description,
-  .event-info-panel .event-meta,
-  .event-info-panel .event-sources {
-    display: none;
+  .event-info-panel .event-header .arabic-title {
+    font-size: 0.75rem;
+    margin: 0 0 2px 0;
   }
-  
+
+  .event-info-panel .event-date {
+    font-size: 0.72rem;
+    margin: 0 0 6px 0;
+    color: #888;
+  }
+
+  .event-info-panel .event-description {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    margin: 0 0 8px 0;
+    color: #444;
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .event-info-panel .event-meta {
+    margin-bottom: 6px;
+  }
+
+  .event-info-panel .event-meta .meta-badge {
+    font-size: 0.7rem;
+  }
+
+  .event-info-panel .event-sources {
+    font-size: 0.68rem;
+  }
+
+  .event-info-panel .event-sources strong {
+    font-size: 0.7rem;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .event-info-panel .event-sources li {
+    margin-bottom: 3px;
+  }
+
   .legend {
     bottom: auto;
-    top: 16px;
-    left: 16px;
-    padding: 10px 14px;
+    top: 8px;
+    left: 8px;
+    padding: 6px 9px;
+  }
+
+  .legend-title {
+    font-size: 0.55rem;
+    margin-bottom: 3px;
+  }
+
+  .legend-item {
+    font-size: 0.65rem;
+    gap: 3px;
+  }
+
+  .legend-marker {
+    width: 8px;
+    height: 8px;
+  }
+
+  .legend-marker.region,
+  .legend-marker.border {
+    width: 9px;
+    height: 7px;
+  }
+
+  .legend-marker {
+    border-width: 1px;
+  }
+
+  .legend-marker.village {
+    border-width: 1px;
+  }
+
+  .legend-marker.border {
+    border-width: 1.5px;
   }
 
   .header-content {
-    padding: 0.4rem 1rem 0.3rem 1rem;
+    padding: 0.2rem 0.6rem 0.15rem 0.6rem;
   }
 
   .header-title-en {
-    font-size: clamp(1rem, 4vw, 1.35rem);
+    font-size: clamp(0.7rem, 2.2vw, 0.85rem);
   }
 
   .header-title-ar {
-    font-size: clamp(0.8rem, 3.5vw, 1.05rem);
+    font-size: clamp(0.6rem, 1.8vw, 0.75rem);
   }
 
   .header-subtitle {
-    font-size: clamp(0.6rem, 2.5vw, 0.8rem);
-    white-space: normal;
+    font-size: clamp(0.45rem, 1.5vw, 0.6rem);
   }
 }
 </style>
