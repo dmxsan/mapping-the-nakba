@@ -110,10 +110,11 @@ interface TimelineEvent {
   start_date: string
   end_date?: string
   description: string
+  coordinates?: [number, number]
   casualties?: string
   refugees_created?: string
   location?: string
-  sources: (string | Source)[]
+  sources: Source[]
 }
 
 interface Props {

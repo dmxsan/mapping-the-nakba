@@ -123,20 +123,6 @@ interface Source {
   url: string
 }
 
-interface HistoricalEvent {
-  id: string
-  title: string
-  titleAr?: string
-  dateType: 'period' | 'specific'
-  startDate: string
-  endDate?: string
-  description: string
-  coordinates: [number, number]
-  casualties?: string
-  refugeesCreated?: string
-  sources: Source[]
-}
-
 interface TimelineEvent {
   event_id: string
   title: string
@@ -145,7 +131,7 @@ interface TimelineEvent {
   start_date: string
   end_date?: string
   description: string
-  coordinates: [number, number]
+  coordinates?: [number, number]
   casualties?: string
   refugees_created?: string
   location?: string
@@ -176,7 +162,7 @@ const props = withDefaults(defineProps<Props>(), {
 const mapContainer = ref<HTMLDivElement | null>(null)
 const timelineSliderRef = ref<InstanceType<typeof TimelineSlider>>()
 let map: maplibregl.Map | null = null
-const selectedEvent = ref<TimelineEvent | null>(null)
+const selectedEvent = ref<any>(null)
 
 const timelineEvents = ref<TimelineEvent[]>(events.map(e => ({
   event_id: e.id,
@@ -327,8 +313,8 @@ const markersRef = {
   events: new Map<string, maplibregl.Marker>()
 }
 
-const regionLabelMarkers = ref<maplibregl.Marker[]>([])
-const regionPointMarkers = ref<maplibregl.Marker[]>([])
+const regionLabelMarkers = ref<any[]>([])
+const regionPointMarkers = ref<any[]>([])
 
 const calculateCentroid = (coords: number[][][]): [number, number] => {
   const ring = coords[0]
@@ -515,7 +501,7 @@ const onYearChange = (layerId: string, year: number) => {
   }
 }
 
-const createCityMarker = (city: { name: string; coordinates: [number, number] }) => {
+const createCityMarker = (_city: { name: string; coordinates: [number, number] }) => {
   const { w, h } = MARKER_SIZES.city
   const scale = getMarkerScale(currentZoom)
   const sw = Math.round(w * scale)
@@ -536,7 +522,7 @@ const createCityMarker = (city: { name: string; coordinates: [number, number] })
   return el
 }
 
-const createVillageMarker = (village: { name: string; coordinates: [number, number] }) => {
+const createVillageMarker = (_village: { name: string; coordinates: [number, number] }) => {
   const { w, h } = MARKER_SIZES.village
   const scale = getMarkerScale(currentZoom)
   const sw = Math.round(w * scale)
@@ -716,8 +702,7 @@ onMounted(() => {
       ]
     },
     center: props.initialCenter,
-    zoom: props.initialZoom,
-    attributionControl: true
+    zoom: props.initialZoom
   })
 
   map.addControl(new maplibregl.NavigationControl(), 'top-right')
