@@ -962,7 +962,21 @@ onUnmounted(() => {
 }
 
 .layers-section {
-  flex: 1;
+  flex: none;
+}
+
+.webgis-sidebar {
+  width: 340px;
+  background: white;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+}
+
+.layers-section {
+  flex: none;
 }
 
 .webgis-map-area {

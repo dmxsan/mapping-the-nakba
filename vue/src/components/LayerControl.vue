@@ -189,7 +189,6 @@ const resetLayers = () => {
 .layer-control-container {
   background: white;
   padding: 20px;
-  height: 100%;
   display: flex;
   flex-direction: column;
   font-family: system-ui, -apple-system, sans-serif;

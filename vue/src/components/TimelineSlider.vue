@@ -246,7 +246,6 @@ defineExpose({
 .timeline-slider-container {
   background: white;
   padding: 20px;
-  height: 100%;
   display: flex;
   flex-direction: column;
   font-family: system-ui, -apple-system, sans-serif;
@@ -441,7 +440,6 @@ defineExpose({
 .timeline-controls {
   display: flex;
   gap: 8px;
-  margin-top: auto;
   padding-top: 8px;
 }
 
