@@ -386,9 +386,11 @@ const addVillageLayers = () => {
     source: 'village-clusters',
     filter: ['has', 'point_count'],
     paint: {
-      'circle-color': '#D32F2F',
-      'circle-opacity': 0.7,
-      'circle-radius': ['step', ['get', 'point_count'], 18, 5, 24, 10, 32, 20, 42]
+      'circle-color': '#C62828',
+      'circle-opacity': 0.85,
+      'circle-radius': ['step', ['get', 'point_count'], 18, 5, 24, 10, 32, 20, 42],
+      'circle-stroke-color': '#ffffff',
+      'circle-stroke-width': 2
     }
   }, beforeLayer)
 
@@ -399,10 +401,15 @@ const addVillageLayers = () => {
     filter: ['has', 'point_count'],
     layout: {
       'text-field': ['get', 'point_count_abbreviated'],
-      'text-size': 13
+      'text-size': 14,
+      'text-font': ['Open Sans Bold'],
+      'text-allow-overlap': true,
+      'text-ignore-placement': true
     },
     paint: {
-      'text-color': '#ffffff'
+      'text-color': '#ffffff',
+      'text-halo-color': '#C62828',
+      'text-halo-width': 2
     }
   }, beforeLayer)
 
@@ -783,6 +790,7 @@ onMounted(() => {
     container: mapContainer.value,
     style: {
       version: 8,
+      glyphs: 'https://fonts.openmaptiles.org/{fontstack}/{range}.pbf',
       sources: {
         'carto-light': {
           type: 'raster',
