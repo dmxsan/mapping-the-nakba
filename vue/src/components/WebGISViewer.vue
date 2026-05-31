@@ -122,9 +122,9 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import TimelineSlider from './TimelineSlider.vue'
 import LayerControl from './LayerControl.vue'
 import { cities } from '@/data/cities'
-import { villages } from '@/data/villages'
 import { events } from '@/data/events'
-import { regions, EVENT_REGIONS, PALESTINE_BORDER } from '@/data/regions'
+import { EVENT_REGIONS } from '@/data/regions'
+import { useMapStore } from '@/stores/mapStore'
 
 interface Source {
   name: string
@@ -166,6 +166,32 @@ const props = withDefaults(defineProps<Props>(), {
   initialCenter: () => [35.2332, 31.9522],
   initialZoom: 8
 })
+
+const store = useMapStore()
+
+const regionFeatures = ref<Record<string, GeoJSON.Feature>>({})
+const regionsLoaded = ref(false)
+
+async function loadAllRegions() {
+  if (regionsLoaded.value) return
+  const regionIds = Object.keys(EVENT_REGIONS).flatMap(k => EVENT_REGIONS[k])
+  const uniqueIds = [...new Set(regionIds)]
+  try {
+    const entries = await Promise.all(
+      uniqueIds.map(async (id) => {
+        const res = await fetch(`/data/regions/${id}.geojson`)
+        const geojson: GeoJSON.FeatureCollection = await res.json()
+        return [id, geojson.features[0]] as [string, GeoJSON.Feature]
+      })
+    )
+    for (const [id, feature] of entries) {
+      regionFeatures.value[id] = feature
+    }
+    regionsLoaded.value = true
+  } catch (e) {
+    console.error('Failed to load regions:', e)
+  }
+}
 
 const mapContainer = ref<HTMLDivElement | null>(null)
 const timelineSliderRef = ref<InstanceType<typeof TimelineSlider>>()
@@ -397,7 +423,7 @@ const addVillageLayers = () => {
 const showVillages = (eventId: string) => {
   if (!map) return
   
-  const linked = villages.filter(v => v.eventId === eventId)
+  const linked = store.allVillages.filter(v => v.eventId === eventId)
   const source = map.getSource('village-clusters') as maplibregl.GeoJSONSource | undefined
   if (!source) return
 
@@ -432,19 +458,19 @@ const clearVillages = () => {
 const showEventRegion = (eventId: string) => {
   const regionIds = EVENT_REGIONS[eventId] || []
   const features = regionIds.map(id => {
-    const r = regions[id]
-    return r ? {
+    const feature = regionFeatures.value[id]
+    return feature ? {
       type: 'Feature' as const,
-      properties: { name: r.name },
-      geometry: r.geometry
+      properties: { name: feature.properties?.name || id },
+      geometry: feature.geometry
     } : null
-  }).filter(Boolean)
+  }).filter(Boolean) as GeoJSON.Feature[]
 
   const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
   if (source) {
     source.setData({
       type: 'FeatureCollection',
-      features: features as GeoJSON.Feature[]
+      features
     })
   }
 
@@ -468,9 +494,10 @@ const showEventRegion = (eventId: string) => {
   const hasMultiple = regionIds.length > 1
 
   regionIds.forEach((id, index) => {
-    const r = regions[id]
-    if (!r) return
-    const center = calculateCentroid(r.geometry.coordinates)
+    const feature = regionFeatures.value[id]
+    if (!feature) return
+    const geometry = feature.geometry as GeoJSON.Polygon
+    const center = calculateCentroid(geometry.coordinates)
 
     const cityName = REGION_TO_CITY[id]
 
@@ -488,7 +515,7 @@ const showEventRegion = (eventId: string) => {
       pointer-events: none;
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     `
-    el.textContent = r.name
+    el.textContent = feature.properties?.name || id
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', offset: [0, -24] })
       .setLngLat(center)
       .addTo(map!)
@@ -510,7 +537,7 @@ const showEventRegion = (eventId: string) => {
         .setPopup(
           new maplibregl.Popup({ offset: 14 }).setHTML(`
             <div style="font-family: system-ui, sans-serif; padding: 4px 6px; font-size: 12px;">
-              <strong style="color: #1976D2;">${r.name}</strong>
+              <strong style="color: #1976D2;">${feature.properties?.name || id}</strong>
             </div>
           `)
         )
@@ -540,9 +567,10 @@ const fitMapToRegions = (eventId: string) => {
   let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity
 
   regionIds.forEach(id => {
-    const r = regions[id]
-    if (!r) return
-    const ring = r.geometry.coordinates[0]
+    const feature = regionFeatures.value[id]
+    if (!feature) return
+    const geometry = feature.geometry as GeoJSON.Polygon
+    const ring = geometry.coordinates[0]
     ring.forEach(pt => {
       if (pt[0] < minLng) minLng = pt[0]
       if (pt[0] > maxLng) maxLng = pt[0]
@@ -745,6 +773,10 @@ const swapHistoricalTiles = (year: number) => {
 }
 
 onMounted(() => {
+  // Load async data
+  store.loadVillages()
+  loadAllRegions()
+  
   if (!mapContainer.value) return
 
   map = new maplibregl.Map({
@@ -779,7 +811,7 @@ onMounted(() => {
 
     map!.addSource('palestine-border', {
       type: 'geojson',
-      data: PALESTINE_BORDER
+      data: '/data/regions/mandatory-palestine.geojson'
     })
 
     map!.addLayer({

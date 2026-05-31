@@ -2,14 +2,14 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { City, Village, HistoricalEvent, LayerConfig, SearchResult } from '@/types'
 import { cities } from '@/data/cities'
-import { villages } from '@/data/villages'
 import { events } from '@/data/events'
 
 export const useMapStore = defineStore('map', () => {
   // State
   const allCities = ref<City[]>(cities)
-  const allVillages = ref<Village[]>(villages)
+  const allVillages = ref<Village[]>([])
   const allEvents = ref<HistoricalEvent[]>(events)
+  const villagesLoaded = ref(false)
   
   const activeEventId = ref<string | null>(null)
   
@@ -97,11 +97,32 @@ export const useMapStore = defineStore('map', () => {
     }
   }
   
+  async function loadVillages() {
+    if (villagesLoaded.value) return
+    try {
+      const res = await fetch('/data/villages.geojson')
+      const geojson = await res.json()
+      allVillages.value = geojson.features.map((f: any) => ({
+        id: f.properties.id,
+        name: f.properties.name,
+        coordinates: [f.geometry.coordinates[1], f.geometry.coordinates[0]] as [number, number],
+        year: f.properties.year,
+        fate: f.properties.fate,
+        eventId: f.properties.eventId,
+        type: 'village' as const
+      }))
+      villagesLoaded.value = true
+    } catch (e) {
+      console.error('Failed to load villages:', e)
+    }
+  }
+  
   return {
     // State
     allCities,
     allVillages,
     allEvents,
+    villagesLoaded,
     activeEventId,
     visibleLayers,
     searchQuery,
@@ -124,6 +145,7 @@ export const useMapStore = defineStore('map', () => {
     pauseTimeline,
     nextEvent,
     previousEvent,
-    setCurrentEventIndex
+    setCurrentEventIndex,
+    loadVillages
   }
 })
