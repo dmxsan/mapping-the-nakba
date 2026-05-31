@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync:data": "copy ..\\data\\*.geojson public\\data\\ && copy ..\\data\\regions\\*.geojson public\\data\\regions\\",
+    "sync:data": "node -e \"const fs=require('fs'),p=require('path');['public/data','public/data/regions'].forEach(d=>{try{fs.mkdirSync(p.join(__dirname,d),{recursive:true})}catch{}});fs.readdirSync(p.join(__dirname,'../data')).forEach(f=>{if(f.endsWith('.geojson'))fs.copyFileSync(p.join(__dirname,'../data',f),p.join(__dirname,'public/data',f))});fs.readdirSync(p.join(__dirname,'../data/regions')).forEach(f=>{if(f.endsWith('.geojson'))fs.copyFileSync(p.join(__dirname,'../data/regions',f),p.join(__dirname,'public/data/regions',f))})\"",
     "predev": "npm run sync:data",
     "dev": "vite",
     "prebuild": "npm run sync:data",
