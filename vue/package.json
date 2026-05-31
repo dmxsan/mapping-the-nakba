@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "sync:data": "copy ..\\data\\*.geojson public\\data\\ && copy ..\\data\\regions\\*.geojson public\\data\\regions\\",
+    "predev": "npm run sync:data",
     "dev": "vite",
+    "prebuild": "npm run sync:data",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix"

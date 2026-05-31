@@ -3,6 +3,10 @@ dist/
 .DS_Store
 __pycache__/
 *.pyc
+archive/
+
+# copied data (canonical source is in data/)
+vue/public/data/
 
 # opencode workflow
 .opencode/
