@@ -32,14 +32,22 @@
           >
             <div
               v-if="entry._isGroupLabel"
-              class="border-group-label"
-              :class="{ 'all-active': allAnnexationsActive }"
+              class="border-sub-item border-group-label"
+              :class="{ active: allAnnexationsActive }"
               @click="toggleAnnexations"
               role="button"
               tabindex="0"
               @keydown.enter="toggleAnnexations"
             >
-              <span class="border-group-label-text">{{ entry.groupLabel }}</span>
+              <label class="border-checkbox" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="allAnnexationsActive"
+                  tabindex="-1"
+                />
+                <span class="border-checkmark"></span>
+              </label>
+              <span class="border-sub-name">{{ entry.groupLabel }}</span>
             </div>
             <div
               v-else
@@ -657,35 +665,11 @@ const toggleBordersExpanded = () => {
 }
 
 .border-group-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.7rem;
   font-weight: 600;
-  color: #AD1457;
-  padding: 6px 10px;
   margin-bottom: 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-}
-
-.border-group-label:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
-}
-
-.border-group-label.all-active {
-  background: #fce7f3;
-  border-color: #f472b6;
-}
-
-.border-group-label-text {
-  flex: 1;
+  font-size: 0.78rem;
 }
 
 .border-sub-item {
