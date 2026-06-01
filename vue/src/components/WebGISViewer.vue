@@ -26,9 +26,11 @@
         />
         <LayerControl 
           :layers="mapLayers" 
+          :borders="borderLayers"
           @toggle="onLayerToggle"
           @opacity="onOpacityChange"
           @yearchange="onYearChange"
+          @toggleBorder="toggleBorder"
           class="layers-section"
         />
       </aside>
@@ -155,6 +157,9 @@ interface MapLayer {
   opacity: number
   years?: number[]
   selectedYear?: number
+  fillColor?: string
+  group?: string
+  colorMatch?: Record<string, string>
 }
 
 interface Props {
@@ -224,6 +229,72 @@ const POM_YEAR_URLS: Record<number, string> = {
 
 const POM_YEARS = Object.keys(POM_YEAR_URLS).map(Number).sort((a, b) => a - b)
 const DEFAULT_POM_YEAR = 1945
+
+const UN_COLORS: Record<string, string> = {
+  'Arab State': '#E65100',
+  'Jewish State': '#1565C0',
+  'International State': '#43A047'
+}
+
+const borderLayers = ref<MapLayer[]>([
+  {
+    id: 'border-post-nakba',
+    name: 'Gaza & West Bank (1948)',
+    year: 1948,
+    url: '/data/borders/palestine_post_nakba.geojson',
+    visible: false,
+    opacity: 55,
+    fillColor: '#00695C'
+  },
+  {
+    id: 'border-golan-heights',
+    name: 'Golan Heights (1981)',
+    year: 1981,
+    url: '/data/borders/golan_heights_19811204.geojson',
+    visible: false,
+    opacity: 65,
+    fillColor: '#AD1457',
+    group: 'israel-annexations'
+  },
+  {
+    id: 'border-east-jerusalem',
+    name: 'East Jerusalem (1967)',
+    year: 1967,
+    url: '/data/borders/israel_east_jerussalem_19670628.geojson',
+    visible: false,
+    opacity: 65,
+    fillColor: '#AD1457',
+    group: 'israel-annexations'
+  },
+  {
+    id: 'border-partition-1947',
+    name: 'UN Partition Plan (1947)',
+    year: 1947,
+    url: '/data/borders/1947_un_partition_plan.geojson',
+    visible: false,
+    opacity: 65,
+    fillColor: '#E65100',
+    colorMatch: UN_COLORS
+  },
+  {
+    id: 'border-jewish-land',
+    name: 'Jewish-Owned Land (1945)',
+    year: 1945,
+    url: '/data/borders/jewish_owned_land_19450331.geojson',
+    visible: false,
+    opacity: 70,
+    fillColor: '#1565C0'
+  },
+  {
+    id: 'border-historic-palestine',
+    name: 'Historic Palestine (1920)',
+    year: 1920,
+    url: '/data/borders/historic_palestine_pre_1920.geojson',
+    visible: true,
+    opacity: 60,
+    fillColor: '#2E7D32'
+  }
+])
 
 const mapLayers = ref<MapLayer[]>([
   {
@@ -779,6 +850,55 @@ const swapHistoricalTiles = (year: number) => {
   }
 }
 
+const addBorderLayers = () => {
+  if (!map) return
+  borderLayers.value.forEach(layer => {
+    if (map!.getSource(layer.id)) return
+    map!.addSource(layer.id, {
+      type: 'geojson',
+      data: layer.url
+    })
+    const fillColorPaint = layer.colorMatch
+      ? ['match', ['get', 'name'], ...Object.entries(layer.colorMatch).flat(), '#888888'] as any
+      : (layer.fillColor || '#000000')
+    map!.addLayer({
+      id: layer.id + '-fill',
+      type: 'fill',
+      source: layer.id,
+      layout: { visibility: layer.visible ? 'visible' : 'none' },
+      paint: {
+        'fill-color': fillColorPaint,
+        'fill-opacity': (layer.opacity || 50) / 100
+      }
+    })
+    map!.addLayer({
+      id: layer.id + '-line',
+      type: 'line',
+      source: layer.id,
+      layout: { visibility: layer.visible ? 'visible' : 'none' },
+      paint: {
+        'line-color': layer.fillColor || '#000000',
+        'line-width': 2,
+        'line-opacity': 0.8
+      }
+    })
+  })
+}
+
+const toggleBorder = (layer: MapLayer) => {
+  const layerIndex = borderLayers.value.findIndex(l => l.id === layer.id)
+  if (layerIndex !== -1) {
+    borderLayers.value[layerIndex].visible = layer.visible
+    const m = map
+    if (!m) return
+    ;[layer.id + '-fill', layer.id + '-line'].forEach(lid => {
+      if (m.getLayer(lid)) {
+        m.setLayoutProperty(lid, 'visibility', layer.visible ? 'visible' : 'none')
+      }
+    })
+  }
+}
+
 onMounted(() => {
   // Load async data
   store.loadVillages()
@@ -852,6 +972,7 @@ onMounted(() => {
     })
 
     addVillageLayers()
+    addBorderLayers()
 
     map!.on('click', 'village-point', (e) => {
       const props = e.features?.[0]?.properties
