@@ -416,9 +416,29 @@ const markersRef = {
 
 const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
+const partitionLabels = ref<any[]>([])
 
 const calculateCentroid = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [number, number] => {
-  const ring = geometry.type === 'MultiPolygon' ? geometry.coordinates[0][0] : geometry.coordinates[0]
+  // For MultiPolygon, use the largest polygon (by vertex count) for centroid
+  if (geometry.type === 'MultiPolygon') {
+    let maxRing: number[][] = []
+    let maxLen = 0
+    for (const poly of geometry.coordinates) {
+      const ring = poly[0]
+      if (ring.length > maxLen) {
+        maxLen = ring.length
+        maxRing = ring
+      }
+    }
+    const ring = maxRing
+    let cx = 0, cy = 0
+    for (const pt of ring) {
+      cx += pt[0]
+      cy += pt[1]
+    }
+    return [cx / ring.length, cy / ring.length]
+  }
+  const ring = geometry.coordinates[0]
   let cx = 0, cy = 0
   for (const pt of ring) {
     cx += pt[0]
@@ -593,6 +613,7 @@ const showEventRegion = (eventId: string) => {
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     `
     el.textContent = feature.properties?.name || id
+    el.style.zIndex = '1001'
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', offset: [0, -24] })
       .setLngLat(center)
       .addTo(map!)
@@ -897,6 +918,73 @@ const toggleBorder = (layer: MapLayer) => {
         m.setLayoutProperty(lid, 'visibility', layer.visible ? 'visible' : 'none')
       }
     })
+
+    // UN Partition Plan labels
+    if (layer.id === 'border-partition-1947') {
+      if (layer.visible) {
+        showPartitionLabels()
+      } else {
+        partitionLabels.value.forEach(l => l.remove())
+        partitionLabels.value = []
+      }
+    }
+  }
+}
+
+let partitionGeo: GeoJSON.FeatureCollection | null = null
+
+const showPartitionLabels = async () => {
+  if (!map || !map) return
+  try {
+    if (!partitionGeo) {
+      const res = await fetch('/data/borders/1947_un_partition_plan.geojson')
+      partitionGeo = await res.json()
+    }
+    if (!partitionGeo) return
+    partitionLabels.value.forEach(l => l.remove())
+    partitionLabels.value = []
+
+    const COLORS: Record<string, string> = {
+      'Arab State': '#E65100',
+      'Jewish State': '#1565C0',
+      'International State': '#43A047'
+    }
+
+    partitionGeo.features.forEach((feat: any) => {
+      const name = feat.properties?.name
+      if (!name) return
+      const color = COLORS[name] || '#888'
+      const center = calculateCentroid(feat.geometry)
+
+      // Shift Arab State label south-west so it sits between West Bank and Gaza
+      if (name === 'Arab State') {
+        center[0] -= 0.5  // shift west
+        center[1] -= 0.65 // shift south
+      }
+
+      const el = document.createElement('div')
+      el.className = 'partition-label'
+      el.textContent = name
+      el.style.cssText = `
+        font-size: 10px;
+        font-weight: 700;
+        color: #fff;
+        background: ${color};
+        padding: 3px 8px;
+        border-radius: 4px;
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        z-index: 1002;
+      `
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(center)
+        .addTo(map!)
+      partitionLabels.value.push(marker)
+    })
+  } catch (e) {
+    console.warn('Failed to load partition labels:', e)
   }
 }
 
