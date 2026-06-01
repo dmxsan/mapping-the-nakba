@@ -667,9 +667,7 @@ const toggleBordersExpanded = () => {
 .border-group-label {
   font-weight: 600;
   margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
 }
 
 .border-sub-item {
