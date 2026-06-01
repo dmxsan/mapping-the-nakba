@@ -416,8 +416,8 @@ const markersRef = {
 const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
 
-const calculateCentroid = (coords: number[][][]): [number, number] => {
-  const ring = coords[0]
+const calculateCentroid = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [number, number] => {
+  const ring = geometry.type === 'MultiPolygon' ? geometry.coordinates[0][0] : geometry.coordinates[0]
   let cx = 0, cy = 0
   for (const pt of ring) {
     cx += pt[0]
@@ -574,8 +574,8 @@ const showEventRegion = (eventId: string) => {
   regionIds.forEach((id, index) => {
     const feature = regionFeatures.value[id]
     if (!feature) return
-    const geometry = feature.geometry as GeoJSON.Polygon
-    const center = calculateCentroid(geometry.coordinates)
+    const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
+    const center = calculateCentroid(geometry)
 
     const cityName = REGION_TO_CITY[id]
 
@@ -647,13 +647,15 @@ const fitMapToRegions = (eventId: string) => {
   regionIds.forEach(id => {
     const feature = regionFeatures.value[id]
     if (!feature) return
-    const geometry = feature.geometry as GeoJSON.Polygon
-    const ring = geometry.coordinates[0]
-    ring.forEach(pt => {
-      if (pt[0] < minLng) minLng = pt[0]
-      if (pt[0] > maxLng) maxLng = pt[0]
-      if (pt[1] < minLat) minLat = pt[1]
-      if (pt[1] > maxLat) maxLat = pt[1]
+    const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
+    const coords = geometry.type === 'MultiPolygon' ? geometry.coordinates.flat(1) : [geometry.coordinates[0]]
+    coords.forEach(ring => {
+      ring.forEach(pt => {
+        if (pt[0] < minLng) minLng = pt[0]
+        if (pt[0] > maxLng) maxLng = pt[0]
+        if (pt[1] < minLat) minLat = pt[1]
+        if (pt[1] > maxLat) maxLat = pt[1]
+      })
     })
   })
 
