@@ -237,23 +237,15 @@ const UN_COLORS: Record<string, string> = {
 }
 
 const borderLayers = ref<MapLayer[]>([
-  {
-    id: 'border-post-nakba',
-    name: 'Gaza & West Bank (1948)',
-    year: 1948,
-    url: '/data/borders/palestine_post_nakba.geojson',
-    visible: false,
-    opacity: 55,
-    fillColor: '#00695C'
-  },
+  // Sidebar UI order (top→bottom). Map stacking reversed in addBorderLayers.
   {
     id: 'border-golan-heights',
     name: 'Golan Heights (1981)',
     year: 1981,
     url: '/data/borders/golan_heights_19811204.geojson',
     visible: false,
-    opacity: 65,
-    fillColor: '#AD1457',
+    opacity: 45,
+    fillColor: '#E57373',
     group: 'israel-annexations'
   },
   {
@@ -262,9 +254,18 @@ const borderLayers = ref<MapLayer[]>([
     year: 1967,
     url: '/data/borders/israel_east_jerussalem_19670628.geojson',
     visible: false,
-    opacity: 65,
-    fillColor: '#AD1457',
+    opacity: 45,
+    fillColor: '#E57373',
     group: 'israel-annexations'
+  },
+  {
+    id: 'border-post-nakba',
+    name: 'Gaza & West Bank (1948)',
+    year: 1948,
+    url: '/data/borders/palestine_post_nakba.geojson',
+    visible: false,
+    opacity: 40,
+    fillColor: '#4DB6AC'
   },
   {
     id: 'border-partition-1947',
@@ -272,8 +273,8 @@ const borderLayers = ref<MapLayer[]>([
     year: 1947,
     url: '/data/borders/1947_un_partition_plan.geojson',
     visible: false,
-    opacity: 65,
-    fillColor: '#E65100',
+    opacity: 45,
+    fillColor: '#FFB74D',
     colorMatch: UN_COLORS
   },
   {
@@ -282,8 +283,8 @@ const borderLayers = ref<MapLayer[]>([
     year: 1945,
     url: '/data/borders/jewish_owned_land_19450331.geojson',
     visible: false,
-    opacity: 70,
-    fillColor: '#1565C0'
+    opacity: 35,
+    fillColor: '#64B5F6'
   },
   {
     id: 'border-historic-palestine',
@@ -291,8 +292,8 @@ const borderLayers = ref<MapLayer[]>([
     year: 1920,
     url: '/data/borders/historic_palestine_pre_1920.geojson',
     visible: true,
-    opacity: 60,
-    fillColor: '#2E7D32'
+    opacity: 40,
+    fillColor: '#81C784'
   }
 ])
 
@@ -449,8 +450,6 @@ const addVillageLayers = () => {
     clusterRadius: 50
   })
 
-  const beforeLayer = 'palestine-border-line'
-  
   map.addLayer({
     id: 'village-cluster-circle',
     type: 'circle',
@@ -463,7 +462,7 @@ const addVillageLayers = () => {
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 2
     }
-  }, beforeLayer)
+  })
 
   map.addLayer({
     id: 'village-cluster-count',
@@ -482,7 +481,7 @@ const addVillageLayers = () => {
       'text-halo-color': '#C62828',
       'text-halo-width': 2
     }
-  }, beforeLayer)
+  })
 
   map.addLayer({
     id: 'village-point',
@@ -495,7 +494,7 @@ const addVillageLayers = () => {
       'circle-stroke-width': 2,
       'circle-stroke-color': '#ffffff'
     }
-  }, beforeLayer)
+  })
 }
 
 const showVillages = (eventId: string) => {
@@ -854,7 +853,7 @@ const swapHistoricalTiles = (year: number) => {
 
 const addBorderLayers = () => {
   if (!map) return
-  borderLayers.value.forEach(layer => {
+  borderLayers.value.slice().reverse().forEach(layer => {
     if (map!.getSource(layer.id)) return
     map!.addSource(layer.id, {
       type: 'geojson',
@@ -939,6 +938,9 @@ onMounted(() => {
   map.on('load', () => {
     try { addRasterLayers() } catch (e) { console.warn('Raster layer setup failed:', e) }
 
+    // Layer order (bottom → top): base → raster → historical borders → palestine border → impacted areas → villages
+    addBorderLayers()
+
     map!.addSource('palestine-border', {
       type: 'geojson',
       data: '/data/regions/mandatory-palestine.geojson'
@@ -974,7 +976,6 @@ onMounted(() => {
     })
 
     addVillageLayers()
-    addBorderLayers()
 
     map!.on('click', 'village-point', (e) => {
       const props = e.features?.[0]?.properties
