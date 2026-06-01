@@ -21,5 +21,8 @@ plans/
 # QGIS metadata
 *.qmd
 
+# Vite cache
+.vite/
+
 # chat history exports
 *chat-history.md
