@@ -249,6 +249,16 @@ const borderLayers = ref<MapLayer[]>([
     fillColor: '#26A69A'
   },
   {
+    id: 'border-israel-occupied',
+    name: 'Occupied Territories (current)',
+    year: 2023,
+    url: '/data/borders/israel_border_20230628.geojson',
+    visible: false,
+    opacity: 45,
+    fillColor: '#EF5350',
+    group: 'israel-annexations'
+  },
+  {
     id: 'border-golan-heights',
     name: 'Golan Heights (1981)',
     year: 1981,

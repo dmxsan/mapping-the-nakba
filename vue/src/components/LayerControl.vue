@@ -258,7 +258,7 @@ const groupedBorderEntries = computed(() => {
       visible: true,
       opacity: 0,
       fillColor: '#AD1457',
-      groupLabel: 'Israel Annexations (1967–1981)',
+      groupLabel: 'Israel Occupations',
       _isGroupLabel: true
     })
     annexationItems.forEach(b => result.push({ ...b, _isGroupLabel: false }))
