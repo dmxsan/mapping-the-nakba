@@ -210,9 +210,11 @@ const emit = defineEmits<{
   (e: 'opacity', layer: MapLayer): void
   (e: 'yearchange', layerId: string, year: number): void
   (e: 'toggleBorder', layer: MapLayer): void
+  (e: 'reset'): void
 }>()
 
 const defaultLayers = ref<MapLayer[]>(JSON.parse(JSON.stringify(props.layers)))
+const defaultBorders = ref<MapLayer[]>(JSON.parse(JSON.stringify(props.borders || [])))
 const isHistorical = computed(() => props.layers.some(l => l.id === 'pom-historical'))
 
 const visibleLayers = computed(() => {
@@ -293,6 +295,12 @@ const showAllLayers = () => {
       emit('toggle', layer)
     }
   })
+  ;(props.borders || []).forEach(b => {
+    if (!b.visible) {
+      b.visible = true
+      emit('toggleBorder', b)
+    }
+  })
 }
 
 const hideAllLayers = () => {
@@ -300,6 +308,12 @@ const hideAllLayers = () => {
     if (layer.visible) {
       layer.visible = false
       emit('toggle', layer)
+    }
+  })
+  ;(props.borders || []).forEach(b => {
+    if (b.visible) {
+      b.visible = false
+      emit('toggleBorder', b)
     }
   })
 }
@@ -313,6 +327,13 @@ const resetLayers = () => {
       emit('toggle', layer)
     }
   })
+  ;(props.borders || []).forEach((b, index) => {
+    if (defaultBorders.value[index]) {
+      b.visible = defaultBorders.value[index].visible
+      emit('toggleBorder', b)
+    }
+  })
+  emit('reset')
 }
 
 const annexationItems = computed(() => {

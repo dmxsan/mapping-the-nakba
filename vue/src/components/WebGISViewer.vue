@@ -31,6 +31,7 @@
           @opacity="onOpacityChange"
           @yearchange="onYearChange"
           @toggleBorder="toggleBorder"
+          @reset="onReset"
           class="layers-section"
         />
       </aside>
@@ -640,6 +641,12 @@ const showEventRegion = async (eventId: string) => {
     const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
     const center = calculateCentroid(geometry)
 
+    // Shift Palestine label southwest for better visual balance
+    if (id === 'mandatory-palestine') {
+      center[0] -= 0.35
+      center[1] -= 0.35
+    }
+
     const cityName = REGION_TO_CITY[id]
 
     const el = document.createElement('div')
@@ -739,6 +746,11 @@ const onTimelineChange = (event: TimelineEvent) => {
     updateMarkerHighlight(event.event_id)
     showEventRegion(event.event_id)
   }
+}
+
+const onReset = () => {
+  const first = timelineEvents.value[0]
+  if (first) onTimelineChange(first)
 }
 
 const onLayerToggle = (layer: MapLayer) => {
