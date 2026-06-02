@@ -29,7 +29,7 @@
           <div class="event-point"></div>
           <div class="event-label">{{ formatYear(event.start_date) }}</div>
           
-          <div v-if="hoveredEvent === index" class="event-tooltip">
+          <div v-if="hoveredEvent === index" class="event-tooltip" :style="getTooltipStyle(index)">
             <strong>{{ event.title }}</strong>
             <span>{{ formatDate(event) }}</span>
           </div>
@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <div v-if="selectedEvent" class="current-event">
+    <div v-if="selectedEvent" class="current-event" :style="{ '--arrow-pos': getEventPosition(selectedIndex) + '%' }">
       <div class="event-title">{{ selectedEvent.title }}</div>
       <div v-if="selectedEvent.location" class="event-location">{{ selectedEvent.location }}</div>
       <div class="event-date">{{ formatDate(selectedEvent) }}</div>
@@ -153,6 +153,30 @@ const playButtonLabel = computed(() => {
 const getEventPosition = (index: number): number => {
   if (props.events.length <= 1) return 0
   return (index / (props.events.length - 1)) * 100
+}
+
+const getTooltipStyle = (index: number) => {
+  const count = props.events.length
+  if (count <= 1) return {}
+  const pos = (index / (count - 1)) * 100
+  if (pos < 15) {
+    return {
+      left: '0',
+      transform: 'translateX(0)',
+      '--arrow-pct': '8px',
+      '--arrow-xform': 'translateX(-50%)'
+    }
+  }
+  if (pos > 85) {
+    return {
+      left: 'auto',
+      right: '0',
+      transform: 'translateX(0)',
+      '--arrow-pct': 'calc(100% - 8px)',
+      '--arrow-xform': 'translateX(-50%)'
+    }
+  }
+  return {}
 }
 
 const formatYear = (dateString: string): string => {
@@ -385,14 +409,17 @@ defineExpose({
   z-index: 100;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   pointer-events: none;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-tooltip::after {
   content: '';
   position: absolute;
   bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: var(--arrow-pct, 50%);
+  transform: var(--arrow-xform, translateX(-50%));
   border-left: 6px solid transparent;
   border-right: 6px solid transparent;
   border-top: 6px solid #1a1a1a;
@@ -409,11 +436,27 @@ defineExpose({
 }
 
 .current-event {
+  position: relative;
   background: #f8f9fa;
   border-radius: 8px;
   padding: 10px 14px;
   margin-bottom: 8px;
   flex-shrink: 0;
+}
+
+.current-event::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: var(--arrow-pos, 50%);
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #f8f9fa;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .current-event .event-title {
@@ -518,37 +561,15 @@ defineExpose({
     font-size: 0.7rem;
   }
 
-  .event-marker:nth-child(-n+2) .event-tooltip {
-    left: 10px;
-    transform: none;
-  }
-
-  .event-marker:nth-child(n+9) .event-tooltip {
-    left: auto;
-    right: 10px;
-    transform: none;
-  }
-
   .event-tooltip::after {
     bottom: auto;
     top: -6px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: var(--arrow-pct, 50%);
+    transform: var(--arrow-xform, translateX(-50%));
     border-top: none;
     border-bottom: 6px solid #1a1a1a;
     border-left: 6px solid transparent;
     border-right: 6px solid transparent;
-  }
-
-  .event-marker:nth-child(-n+2) .event-tooltip::after {
-    left: 10px;
-    transform: none;
-  }
-
-  .event-marker:nth-child(n+9) .event-tooltip::after {
-    left: auto;
-    right: 10px;
-    transform: none;
   }
 }
 </style>
