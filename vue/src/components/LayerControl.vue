@@ -165,6 +165,18 @@
           </a>
         </li>
       </ul>
+      <h4>Contribute</h4>
+      <ul>
+        <li class="contribute-note">
+          This project is open source and welcomes contributors of all kinds.
+        </li>
+        <li>
+          <a href="https://github.com/dmxsan/mapping-the-nakba" target="_blank" rel="noopener">
+            GitHub Repository
+          </a>
+          — report issues, suggest features, submit PRs
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -588,6 +600,14 @@ const toggleBordersExpanded = () => {
   margin-bottom: 4px;
   font-size: 0.8rem;
   color: #666;
+}
+
+.source-info .contribute-note {
+  font-style: italic;
+  color: #888;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  line-height: 1.4;
 }
 
 .source-info a {
