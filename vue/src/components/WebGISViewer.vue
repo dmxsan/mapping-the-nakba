@@ -239,6 +239,15 @@ const UN_COLORS: Record<string, string> = {
 const borderLayers = ref<MapLayer[]>([
   // Sidebar UI order (top→bottom). Map stacking reversed in addBorderLayers.
   {
+    id: 'border-palestine-current',
+    name: 'Palestine Border (current)',
+    year: 2025,
+    url: '/data/borders/palestine_border.geojson',
+    visible: false,
+    opacity: 40,
+    fillColor: '#26A69A'
+  },
+  {
     id: 'border-golan-heights',
     name: 'Golan Heights (1981)',
     year: 1981,
@@ -260,7 +269,7 @@ const borderLayers = ref<MapLayer[]>([
   },
   {
     id: 'border-post-nakba',
-    name: 'Gaza & West Bank (1948)',
+    name: 'Palestine Post Nakba (1948)',
     year: 1948,
     url: '/data/borders/palestine_post_nakba.geojson',
     visible: false,
@@ -418,6 +427,28 @@ const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
 const partitionLabels = ref<any[]>([])
 
+let palestineBorderFeatures: { gaza: GeoJSON.Feature | null; westBank: GeoJSON.Feature | null } | null = null
+
+async function ensurePalestineBorderFeatures() {
+  if (palestineBorderFeatures) return palestineBorderFeatures
+  try {
+    const res = await fetch('/data/borders/palestine_border.geojson')
+    const data: GeoJSON.FeatureCollection = await res.json()
+    let gaza: GeoJSON.Feature | null = null
+    let westBank: GeoJSON.Feature | null = null
+    for (const feat of data.features) {
+      const name = (feat.properties as any)?.adm0_name1 || ''
+      if (name.includes('Gaza')) gaza = feat
+      if (name.includes('West Bank')) westBank = feat
+    }
+    palestineBorderFeatures = { gaza, westBank }
+    return palestineBorderFeatures
+  } catch (e) {
+    console.warn('Failed to load palestine_border.geojson:', e)
+    return { gaza: null, westBank: null }
+  }
+}
+
 const calculateCentroid = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [number, number] => {
   // For MultiPolygon, use the largest polygon (by vertex count) for centroid
   if (geometry.type === 'MultiPolygon') {
@@ -448,15 +479,15 @@ const calculateCentroid = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [n
 }
 
 const clearEventRegion = () => {
-  const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
-  if (source) {
-    source.setData({ type: 'FeatureCollection', features: [] })
-  }
   regionLabelMarkers.value.forEach(m => m.remove())
   regionLabelMarkers.value = []
   regionPointMarkers.value.forEach(m => m.remove())
   regionPointMarkers.value = []
   clearVillages()
+  const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
+  if (source) {
+    source.setData({ type: 'FeatureCollection', features: [] })
+  }
 }
 
 const addVillageLayers = () => {
@@ -552,16 +583,29 @@ const clearVillages = () => {
   })
 }
 
-const showEventRegion = (eventId: string) => {
+const showEventRegion = async (eventId: string) => {
+  // Guard: if the event was closed while we were fetching, abort
+  if (!selectedEvent.value || selectedEvent.value.event_id !== eventId) return
+
   const regionIds = EVENT_REGIONS[eventId] || []
-  const features = regionIds.map(id => {
-    const feature = regionFeatures.value[id]
-    return feature ? {
-      type: 'Feature' as const,
-      properties: { name: feature.properties?.name || id },
-      geometry: feature.geometry
-    } : null
-  }).filter(Boolean) as GeoJSON.Feature[]
+  const borderFeatures = await ensurePalestineBorderFeatures()
+
+  // Guard again after await — event might have been closed during fetch
+  if (!selectedEvent.value || selectedEvent.value.event_id !== eventId) return
+
+  const features: GeoJSON.Feature[] = []
+  regionIds.forEach(id => {
+    // Use palestine_border.geojson for gaza and west-bank
+    if (id === 'gaza' && borderFeatures.gaza) {
+      features.push(borderFeatures.gaza)
+    } else if (id === 'west-bank' && borderFeatures.westBank) {
+      features.push(borderFeatures.westBank)
+    } else {
+      // Fall back to original region features (jerusalem-area, jenin-area, etc.)
+      const feature = regionFeatures.value[id]
+      if (feature) features.push(feature)
+    }
+  })
 
   const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
   if (source) {

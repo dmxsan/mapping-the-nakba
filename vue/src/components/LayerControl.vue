@@ -238,6 +238,15 @@ const groupedBorderEntries = computed(() => {
   const result: (MapLayer & { _isGroupLabel?: boolean })[] = []
   const annexationItems = items.filter(b => b.group === 'israel-annexations')
   const otherItems = items.filter(b => !b.group)
+
+  // Palestine Border (current) always first
+  const currentBorder = otherItems.find(b => b.id === 'border-palestine-current')
+  const remainingOthers = otherItems.filter(b => b.id !== 'border-palestine-current')
+
+  if (currentBorder) {
+    result.push({ ...currentBorder, _isGroupLabel: false })
+  }
+
   if (annexationItems.length) {
     result.push({
       id: 'group-annexations-label',
@@ -252,7 +261,7 @@ const groupedBorderEntries = computed(() => {
     })
     annexationItems.forEach(b => result.push({ ...b, _isGroupLabel: false }))
   }
-  otherItems.forEach(b => result.push({ ...b, _isGroupLabel: false }))
+  remainingOthers.forEach(b => result.push({ ...b, _isGroupLabel: false }))
   return result
 })
 
