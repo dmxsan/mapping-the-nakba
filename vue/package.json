@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync:data": "node -e \"const fs=require('fs'),p=require('path');['public/data','public/data/regions'].forEach(d=>{try{fs.mkdirSync(p.join(__dirname,d),{recursive:true})}catch{}});fs.readdirSync(p.join(__dirname,'../data')).forEach(f=>{if(f.endsWith('.geojson'))fs.copyFileSync(p.join(__dirname,'../data',f),p.join(__dirname,'public/data',f))});fs.readdirSync(p.join(__dirname,'../data/regions')).forEach(f=>{if(f.endsWith('.geojson'))fs.copyFileSync(p.join(__dirname,'../data/regions',f),p.join(__dirname,'public/data/regions',f))})\"",
+    "sync:data": "node bin/sync-data.mjs",
     "predev": "npm run sync:data",
     "dev": "vite",
     "prebuild": "npm run sync:data",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "fuse.js": "^7.0.0",
     "maplibre-gl": "^4.1.0",
     "pinia": "^2.1.7",

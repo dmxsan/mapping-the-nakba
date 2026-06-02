@@ -2,10 +2,77 @@
   <div class="layer-control-container">
     <div class="layer-header">
       <h3>Map Layers</h3>
-      <span class="layer-count">{{ visibleLayers }} of {{ layers.length }}</span>
+      <span class="layer-count">{{ totalVisible }} of {{ totalLayers }}</span>
     </div>
 
     <div class="layers-list">
+      <!-- Historical Borders group — collapse / expand -->
+      <div v-if="borders && borders.length" class="layer-item border-group-item" :class="{ expanded: bordersExpanded }">
+        <div
+          class="layer-toggle border-group-header"
+          @click="toggleBordersExpanded"
+          role="button"
+          tabindex="0"
+          @keydown.enter="toggleBordersExpanded"
+        >
+          <span class="collapse-arrow" :class="{ expanded: bordersExpanded }"></span>
+          <div class="layer-info">
+            <div class="layer-name">Historical Borders</div>
+            <div class="layer-meta">
+              <span class="layer-year">{{ visibleBorders }} active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Border sub-items — only when expanded -->
+        <div v-if="bordersExpanded" class="border-sub-items">
+          <div
+            v-for="entry in groupedBorderEntries"
+            :key="entry.id"
+          >
+            <div
+              v-if="entry._isGroupLabel"
+              class="border-sub-item border-group-label"
+              :class="{ active: allAnnexationsActive }"
+              @click="toggleAnnexations"
+              role="button"
+              tabindex="0"
+              @keydown.enter="toggleAnnexations"
+            >
+              <label class="border-checkbox" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="allAnnexationsActive"
+                  tabindex="-1"
+                />
+                <span class="border-checkmark"></span>
+              </label>
+              <span class="border-sub-name">{{ entry.groupLabel }}</span>
+            </div>
+            <div
+              v-else
+              class="border-sub-item"
+              :class="{ active: entry.visible, 'border-sub-item--nested': entry.group }"
+              @click="toggleBorderLayer(entry)"
+              role="button"
+              tabindex="0"
+              @keydown.enter="toggleBorderLayer(entry)"
+            >
+              <label class="border-checkbox" @click.stop>
+                <input
+                  type="checkbox"
+                  :checked="entry.visible"
+                  tabindex="-1"
+                />
+                <span class="border-checkmark"></span>
+              </label>
+              <span class="border-sub-name">{{ entry.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Raster layers -->
       <div
         v-for="layer in layers"
         :key="layer.id"
@@ -98,6 +165,18 @@
           </a>
         </li>
       </ul>
+      <h4>Contribute</h4>
+      <ul>
+        <li class="contribute-note">
+          This project is open source and welcomes contributors of all kinds.
+        </li>
+        <li>
+          <a href="https://github.com/dmxsan/mapping-the-nakba" target="_blank" rel="noopener">
+            GitHub Repository
+          </a>
+          — report issues, suggest features, submit PRs
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -114,10 +193,15 @@ interface MapLayer {
   opacity: number
   years?: number[]
   selectedYear?: number
+  fillColor?: string
+  group?: string
+  groupLabel?: string
+  colorMatch?: Record<string, string>
 }
 
 interface Props {
   layers: MapLayer[]
+  borders?: MapLayer[]
 }
 
 const props = defineProps<Props>()
@@ -125,13 +209,62 @@ const emit = defineEmits<{
   (e: 'toggle', layer: MapLayer): void
   (e: 'opacity', layer: MapLayer): void
   (e: 'yearchange', layerId: string, year: number): void
+  (e: 'toggleBorder', layer: MapLayer): void
+  (e: 'reset'): void
 }>()
 
 const defaultLayers = ref<MapLayer[]>(JSON.parse(JSON.stringify(props.layers)))
+const defaultBorders = ref<MapLayer[]>(JSON.parse(JSON.stringify(props.borders || [])))
 const isHistorical = computed(() => props.layers.some(l => l.id === 'pom-historical'))
 
 const visibleLayers = computed(() => {
   return props.layers.filter(l => l.visible).length
+})
+
+const visibleBorders = computed(() => {
+  return (props.borders || []).filter(b => b.visible).length
+})
+
+const bordersExpanded = ref(true)
+
+const totalVisible = computed(() => {
+  return visibleLayers.value + visibleBorders.value
+})
+
+const totalLayers = computed(() => {
+  return props.layers.length + (props.borders ? props.borders.length : 0)
+})
+
+const groupedBorderEntries = computed(() => {
+  const items = props.borders || []
+  const result: (MapLayer & { _isGroupLabel?: boolean })[] = []
+  const annexationItems = items.filter(b => b.group === 'israel-annexations')
+  const otherItems = items.filter(b => !b.group)
+
+  // Palestine Border (current) always first
+  const currentBorder = otherItems.find(b => b.id === 'border-palestine-current')
+  const remainingOthers = otherItems.filter(b => b.id !== 'border-palestine-current')
+
+  if (currentBorder) {
+    result.push({ ...currentBorder, _isGroupLabel: false })
+  }
+
+  if (annexationItems.length) {
+    result.push({
+      id: 'group-annexations-label',
+      name: '',
+      year: 0,
+      url: '',
+      visible: true,
+      opacity: 0,
+      fillColor: '#AD1457',
+      groupLabel: 'Israel Occupations',
+      _isGroupLabel: true
+    })
+    annexationItems.forEach(b => result.push({ ...b, _isGroupLabel: false }))
+  }
+  remainingOthers.forEach(b => result.push({ ...b, _isGroupLabel: false }))
+  return result
 })
 
 const getSourceName = (layer: MapLayer): string => {
@@ -162,6 +295,12 @@ const showAllLayers = () => {
       emit('toggle', layer)
     }
   })
+  ;(props.borders || []).forEach(b => {
+    if (!b.visible) {
+      b.visible = true
+      emit('toggleBorder', b)
+    }
+  })
 }
 
 const hideAllLayers = () => {
@@ -169,6 +308,12 @@ const hideAllLayers = () => {
     if (layer.visible) {
       layer.visible = false
       emit('toggle', layer)
+    }
+  })
+  ;(props.borders || []).forEach(b => {
+    if (b.visible) {
+      b.visible = false
+      emit('toggleBorder', b)
     }
   })
 }
@@ -182,6 +327,41 @@ const resetLayers = () => {
       emit('toggle', layer)
     }
   })
+  ;(props.borders || []).forEach((b, index) => {
+    if (defaultBorders.value[index]) {
+      b.visible = defaultBorders.value[index].visible
+      emit('toggleBorder', b)
+    }
+  })
+  emit('reset')
+}
+
+const annexationItems = computed(() => {
+  return (props.borders || []).filter(b => b.group === 'israel-annexations')
+})
+
+const allAnnexationsActive = computed(() => {
+  const items = annexationItems.value
+  return items.length > 0 && items.every(b => b.visible)
+})
+
+const toggleBorderLayer = (border: MapLayer) => {
+  border.visible = !border.visible
+  emit('toggleBorder', border)
+}
+
+const toggleAnnexations = () => {
+  const newState = !allAnnexationsActive.value
+  annexationItems.value.forEach(b => {
+    if (b.visible !== newState) {
+      b.visible = newState
+      emit('toggleBorder', b)
+    }
+  })
+}
+
+const toggleBordersExpanded = () => {
+  bordersExpanded.value = !bordersExpanded.value
 }
 </script>
 
@@ -452,6 +632,14 @@ const resetLayers = () => {
   color: #666;
 }
 
+.source-info .contribute-note {
+  font-style: italic;
+  color: #888;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
 .source-info a {
   color: #1976D2;
   text-decoration: none;
@@ -463,9 +651,160 @@ const resetLayers = () => {
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .layer-control-container {
     padding: 6px 8px;
   }
+  .border-section {
+    padding: 20px;
+    border-top: 1px solid #e0e0e0;
+  }
+}
+
+/* Border group items — inside scoped to ensure Vite picks them up */
+.border-group-item .layer-info {
+  cursor: pointer;
+}
+
+.border-group-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapse-arrow {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 8px;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+.collapse-arrow::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  border: solid #999;
+  border-width: 2px 2px 0 0;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+  position: relative;
+  top: -1px;
+}
+
+.collapse-arrow.expanded::before {
+  transform: rotate(135deg);
+  top: 2px;
+}
+
+.border-group-item.expanded {
+  background: #f8f9fa;
+  border-color: #1976D2;
+}
+
+.border-sub-items {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.border-group-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+}
+
+.border-sub-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1.5px solid #e8e8e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  background: #ffffff;
+}
+
+.border-sub-item:hover {
+  border-color: #1976D2;
+  background: #f8faff;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
+}
+
+.border-sub-item:last-child {
+  margin-bottom: 0;
+}
+
+.border-sub-item.active {
+  background: #EFF6FF;
+  border-color: #1976D2;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.12);
+}
+
+.border-sub-item--nested {
+  margin-left: 28px;
+}
+
+.border-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.border-checkbox input {
+  display: none;
+}
+
+.border-checkmark {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ccc;
+  border-radius: 3px;
+  position: relative;
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.border-checkbox input:checked + .border-checkmark {
+  background: #1976D2;
+  border-color: #1976D2;
+}
+
+.border-checkbox input:checked + .border-checkmark::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 4px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.border-sub-item.active .border-checkmark {
+  border-color: #1976D2;
+}
+
+.border-sub-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.border-sub-item.active .border-sub-name {
+  color: #1a1a1a;
+  font-weight: 600;
 }
 </style>
+

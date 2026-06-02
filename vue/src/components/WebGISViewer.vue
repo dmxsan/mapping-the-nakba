@@ -26,9 +26,12 @@
         />
         <LayerControl 
           :layers="mapLayers" 
+          :borders="borderLayers"
           @toggle="onLayerToggle"
           @opacity="onOpacityChange"
           @yearchange="onYearChange"
+          @toggleBorder="toggleBorder"
+          @reset="onReset"
           class="layers-section"
         />
       </aside>
@@ -155,6 +158,9 @@ interface MapLayer {
   opacity: number
   years?: number[]
   selectedYear?: number
+  fillColor?: string
+  group?: string
+  colorMatch?: Record<string, string>
 }
 
 interface Props {
@@ -224,6 +230,92 @@ const POM_YEAR_URLS: Record<number, string> = {
 
 const POM_YEARS = Object.keys(POM_YEAR_URLS).map(Number).sort((a, b) => a - b)
 const DEFAULT_POM_YEAR = 1945
+
+const UN_COLORS: Record<string, string> = {
+  'Arab State': '#E65100',
+  'Jewish State': '#1565C0',
+  'International State': '#43A047'
+}
+
+const borderLayers = ref<MapLayer[]>([
+  // Sidebar UI order (top→bottom). Map stacking reversed in addBorderLayers.
+  {
+    id: 'border-palestine-current',
+    name: 'Palestine Border (current)',
+    year: 2025,
+    url: '/data/borders/palestine_border.geojson',
+    visible: false,
+    opacity: 40,
+    fillColor: '#26A69A'
+  },
+  {
+    id: 'border-israel-occupied',
+    name: 'Occupied Territories (current)',
+    year: 2023,
+    url: '/data/borders/israel_border_20230628.geojson',
+    visible: false,
+    opacity: 45,
+    fillColor: '#EF5350',
+    group: 'israel-annexations'
+  },
+  {
+    id: 'border-golan-heights',
+    name: 'Golan Heights (1981)',
+    year: 1981,
+    url: '/data/borders/golan_heights_19811204.geojson',
+    visible: false,
+    opacity: 45,
+    fillColor: '#E57373',
+    group: 'israel-annexations'
+  },
+  {
+    id: 'border-east-jerusalem',
+    name: 'East Jerusalem (1967)',
+    year: 1967,
+    url: '/data/borders/israel_east_jerussalem_19670628.geojson',
+    visible: false,
+    opacity: 45,
+    fillColor: '#E57373',
+    group: 'israel-annexations'
+  },
+  {
+    id: 'border-post-nakba',
+    name: 'Palestine Post Nakba (1948)',
+    year: 1948,
+    url: '/data/borders/palestine_post_nakba.geojson',
+    visible: false,
+    opacity: 40,
+    fillColor: '#4DB6AC'
+  },
+  {
+    id: 'border-partition-1947',
+    name: 'UN Partition Plan (1947)',
+    year: 1947,
+    url: '/data/borders/1947_un_partition_plan.geojson',
+    visible: false,
+    opacity: 45,
+    fillColor: '#FFB74D',
+    colorMatch: UN_COLORS
+  },
+  {
+    id: 'border-jewish-land',
+    name: 'Jewish-Owned Land (1945)',
+    year: 1945,
+    url: '/data/borders/jewish_owned_land_19450331.geojson',
+    visible: false,
+    opacity: 35,
+    fillColor: '#64B5F6'
+  },
+  {
+    id: 'border-historic-palestine',
+    name: 'Historic Palestine (1920)',
+    year: 1920,
+    url: '/data/borders/historic_palestine_pre_1920.geojson',
+    visible: true,
+    opacity: 40,
+    fillColor: '#81C784'
+  }
+])
 
 const mapLayers = ref<MapLayer[]>([
   {
@@ -344,9 +436,51 @@ const markersRef = {
 
 const regionLabelMarkers = ref<any[]>([])
 const regionPointMarkers = ref<any[]>([])
+const partitionLabels = ref<any[]>([])
 
-const calculateCentroid = (coords: number[][][]): [number, number] => {
-  const ring = coords[0]
+let palestineBorderFeatures: { gaza: GeoJSON.Feature | null; westBank: GeoJSON.Feature | null } | null = null
+
+async function ensurePalestineBorderFeatures() {
+  if (palestineBorderFeatures) return palestineBorderFeatures
+  try {
+    const res = await fetch('/data/borders/palestine_border.geojson')
+    const data: GeoJSON.FeatureCollection = await res.json()
+    let gaza: GeoJSON.Feature | null = null
+    let westBank: GeoJSON.Feature | null = null
+    for (const feat of data.features) {
+      const name = (feat.properties as any)?.adm0_name1 || ''
+      if (name.includes('Gaza')) gaza = feat
+      if (name.includes('West Bank')) westBank = feat
+    }
+    palestineBorderFeatures = { gaza, westBank }
+    return palestineBorderFeatures
+  } catch (e) {
+    console.warn('Failed to load palestine_border.geojson:', e)
+    return { gaza: null, westBank: null }
+  }
+}
+
+const calculateCentroid = (geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon): [number, number] => {
+  // For MultiPolygon, use the largest polygon (by vertex count) for centroid
+  if (geometry.type === 'MultiPolygon') {
+    let maxRing: number[][] = []
+    let maxLen = 0
+    for (const poly of geometry.coordinates) {
+      const ring = poly[0]
+      if (ring.length > maxLen) {
+        maxLen = ring.length
+        maxRing = ring
+      }
+    }
+    const ring = maxRing
+    let cx = 0, cy = 0
+    for (const pt of ring) {
+      cx += pt[0]
+      cy += pt[1]
+    }
+    return [cx / ring.length, cy / ring.length]
+  }
+  const ring = geometry.coordinates[0]
   let cx = 0, cy = 0
   for (const pt of ring) {
     cx += pt[0]
@@ -356,15 +490,15 @@ const calculateCentroid = (coords: number[][][]): [number, number] => {
 }
 
 const clearEventRegion = () => {
-  const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
-  if (source) {
-    source.setData({ type: 'FeatureCollection', features: [] })
-  }
   regionLabelMarkers.value.forEach(m => m.remove())
   regionLabelMarkers.value = []
   regionPointMarkers.value.forEach(m => m.remove())
   regionPointMarkers.value = []
   clearVillages()
+  const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
+  if (source) {
+    source.setData({ type: 'FeatureCollection', features: [] })
+  }
 }
 
 const addVillageLayers = () => {
@@ -378,8 +512,6 @@ const addVillageLayers = () => {
     clusterRadius: 50
   })
 
-  const beforeLayer = 'palestine-border-line'
-  
   map.addLayer({
     id: 'village-cluster-circle',
     type: 'circle',
@@ -392,7 +524,7 @@ const addVillageLayers = () => {
       'circle-stroke-color': '#ffffff',
       'circle-stroke-width': 2
     }
-  }, beforeLayer)
+  })
 
   map.addLayer({
     id: 'village-cluster-count',
@@ -411,7 +543,7 @@ const addVillageLayers = () => {
       'text-halo-color': '#C62828',
       'text-halo-width': 2
     }
-  }, beforeLayer)
+  })
 
   map.addLayer({
     id: 'village-point',
@@ -424,7 +556,7 @@ const addVillageLayers = () => {
       'circle-stroke-width': 2,
       'circle-stroke-color': '#ffffff'
     }
-  }, beforeLayer)
+  })
 }
 
 const showVillages = (eventId: string) => {
@@ -462,16 +594,29 @@ const clearVillages = () => {
   })
 }
 
-const showEventRegion = (eventId: string) => {
+const showEventRegion = async (eventId: string) => {
+  // Guard: if the event was closed while we were fetching, abort
+  if (!selectedEvent.value || selectedEvent.value.event_id !== eventId) return
+
   const regionIds = EVENT_REGIONS[eventId] || []
-  const features = regionIds.map(id => {
-    const feature = regionFeatures.value[id]
-    return feature ? {
-      type: 'Feature' as const,
-      properties: { name: feature.properties?.name || id },
-      geometry: feature.geometry
-    } : null
-  }).filter(Boolean) as GeoJSON.Feature[]
+  const borderFeatures = await ensurePalestineBorderFeatures()
+
+  // Guard again after await — event might have been closed during fetch
+  if (!selectedEvent.value || selectedEvent.value.event_id !== eventId) return
+
+  const features: GeoJSON.Feature[] = []
+  regionIds.forEach(id => {
+    // Use palestine_border.geojson for gaza and west-bank
+    if (id === 'gaza' && borderFeatures.gaza) {
+      features.push(borderFeatures.gaza)
+    } else if (id === 'west-bank' && borderFeatures.westBank) {
+      features.push(borderFeatures.westBank)
+    } else {
+      // Fall back to original region features (jerusalem-area, jenin-area, etc.)
+      const feature = regionFeatures.value[id]
+      if (feature) features.push(feature)
+    }
+  })
 
   const source = map?.getSource('event-region') as maplibregl.GeoJSONSource | undefined
   if (source) {
@@ -503,8 +648,14 @@ const showEventRegion = (eventId: string) => {
   regionIds.forEach((id, index) => {
     const feature = regionFeatures.value[id]
     if (!feature) return
-    const geometry = feature.geometry as GeoJSON.Polygon
-    const center = calculateCentroid(geometry.coordinates)
+    const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
+    const center = calculateCentroid(geometry)
+
+    // Shift Palestine label southwest for better visual balance
+    if (id === 'mandatory-palestine') {
+      center[0] -= 0.35
+      center[1] -= 0.35
+    }
 
     const cityName = REGION_TO_CITY[id]
 
@@ -523,6 +674,7 @@ const showEventRegion = (eventId: string) => {
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     `
     el.textContent = feature.properties?.name || id
+    el.style.zIndex = '500'
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', offset: [0, -24] })
       .setLngLat(center)
       .addTo(map!)
@@ -556,7 +708,7 @@ const showEventRegion = (eventId: string) => {
 }
 
 const getMapPadding = () => {
-  if (window.innerWidth < 768) {
+  if (window.innerWidth < 1024) {
     return {
       top: Math.round(window.innerHeight * 0.1),
       bottom: Math.round(window.innerHeight * 0.27),
@@ -576,13 +728,15 @@ const fitMapToRegions = (eventId: string) => {
   regionIds.forEach(id => {
     const feature = regionFeatures.value[id]
     if (!feature) return
-    const geometry = feature.geometry as GeoJSON.Polygon
-    const ring = geometry.coordinates[0]
-    ring.forEach(pt => {
-      if (pt[0] < minLng) minLng = pt[0]
-      if (pt[0] > maxLng) maxLng = pt[0]
-      if (pt[1] < minLat) minLat = pt[1]
-      if (pt[1] > maxLat) maxLat = pt[1]
+    const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon
+    const coords = geometry.type === 'MultiPolygon' ? geometry.coordinates.flat(1) : [geometry.coordinates[0]]
+    coords.forEach(ring => {
+      ring.forEach(pt => {
+        if (pt[0] < minLng) minLng = pt[0]
+        if (pt[0] > maxLng) maxLng = pt[0]
+        if (pt[1] < minLat) minLat = pt[1]
+        if (pt[1] > maxLat) maxLat = pt[1]
+      })
     })
   })
 
@@ -602,6 +756,11 @@ const onTimelineChange = (event: TimelineEvent) => {
     updateMarkerHighlight(event.event_id)
     showEventRegion(event.event_id)
   }
+}
+
+const onReset = () => {
+  const first = timelineEvents.value[0]
+  if (first) onTimelineChange(first)
 }
 
 const onLayerToggle = (layer: MapLayer) => {
@@ -779,6 +938,122 @@ const swapHistoricalTiles = (year: number) => {
   }
 }
 
+const addBorderLayers = () => {
+  if (!map) return
+  borderLayers.value.slice().reverse().forEach(layer => {
+    if (map!.getSource(layer.id)) return
+    map!.addSource(layer.id, {
+      type: 'geojson',
+      data: layer.url
+    })
+    const fillColorPaint = layer.colorMatch
+      ? ['match', ['get', 'name'], ...Object.entries(layer.colorMatch).flat(), '#888888'] as any
+      : (layer.fillColor || '#000000')
+    map!.addLayer({
+      id: layer.id + '-fill',
+      type: 'fill',
+      source: layer.id,
+      layout: { visibility: layer.visible ? 'visible' : 'none' },
+      paint: {
+        'fill-color': fillColorPaint,
+        'fill-opacity': (layer.opacity || 50) / 100
+      }
+    })
+    map!.addLayer({
+      id: layer.id + '-line',
+      type: 'line',
+      source: layer.id,
+      layout: { visibility: layer.visible ? 'visible' : 'none' },
+      paint: {
+        'line-color': layer.fillColor || '#000000',
+        'line-width': 2,
+        'line-opacity': 0.8
+      }
+    })
+  })
+}
+
+const toggleBorder = (layer: MapLayer) => {
+  const layerIndex = borderLayers.value.findIndex(l => l.id === layer.id)
+  if (layerIndex !== -1) {
+    borderLayers.value[layerIndex].visible = layer.visible
+    const m = map
+    if (!m) return
+    ;[layer.id + '-fill', layer.id + '-line'].forEach(lid => {
+      if (m.getLayer(lid)) {
+        m.setLayoutProperty(lid, 'visibility', layer.visible ? 'visible' : 'none')
+      }
+    })
+
+    // UN Partition Plan labels
+    if (layer.id === 'border-partition-1947') {
+      if (layer.visible) {
+        showPartitionLabels()
+      } else {
+        partitionLabels.value.forEach(l => l.remove())
+        partitionLabels.value = []
+      }
+    }
+  }
+}
+
+let partitionGeo: GeoJSON.FeatureCollection | null = null
+
+const showPartitionLabels = async () => {
+  if (!map || !map) return
+  try {
+    if (!partitionGeo) {
+      const res = await fetch('/data/borders/1947_un_partition_plan.geojson')
+      partitionGeo = await res.json()
+    }
+    if (!partitionGeo) return
+    partitionLabels.value.forEach(l => l.remove())
+    partitionLabels.value = []
+
+    const COLORS: Record<string, string> = {
+      'Arab State': '#E65100',
+      'Jewish State': '#1565C0',
+      'International State': '#43A047'
+    }
+
+    partitionGeo.features.forEach((feat: any) => {
+      const name = feat.properties?.name
+      if (!name) return
+      const color = COLORS[name] || '#888'
+      const center = calculateCentroid(feat.geometry)
+
+      // Shift Arab State label south-west so it sits between West Bank and Gaza
+      if (name === 'Arab State') {
+        center[0] -= 0.5  // shift west
+        center[1] -= 0.65 // shift south
+      }
+
+      const el = document.createElement('div')
+      el.className = 'partition-label'
+      el.textContent = name
+      el.style.cssText = `
+        font-size: 10px;
+        font-weight: 700;
+        color: #fff;
+        background: ${color};
+        padding: 3px 8px;
+        border-radius: 4px;
+        line-height: 1;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        z-index: 500;
+      `
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(center)
+        .addTo(map!)
+      partitionLabels.value.push(marker)
+    })
+  } catch (e) {
+    console.warn('Failed to load partition labels:', e)
+  }
+}
+
 onMounted(() => {
   // Load async data
   store.loadVillages()
@@ -816,6 +1091,9 @@ onMounted(() => {
 
   map.on('load', () => {
     try { addRasterLayers() } catch (e) { console.warn('Raster layer setup failed:', e) }
+
+    // Layer order (bottom → top): base → raster → historical borders → palestine border → impacted areas → villages
+    addBorderLayers()
 
     map!.addSource('palestine-border', {
       type: 'geojson',
@@ -1280,7 +1558,7 @@ onUnmounted(() => {
   padding-bottom: 10px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .webgis-sidebar {
     position: absolute;
     bottom: 0;
