@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { inject } from '@vercel/analytics'
-import { injectSpeedInsights } from '@vercel/speed-insights'
+import { SpeedInsights } from '@vercel/speed-insights/vue'
 import WebGISViewer from '@/components/WebGISViewer.vue'
 
 inject()
-injectSpeedInsights()
 </script>
 
 <template>
   <WebGISViewer />
+  <SpeedInsights />
 </template>
