@@ -613,7 +613,7 @@ const showEventRegion = (eventId: string) => {
       box-shadow: 0 1px 4px rgba(0,0,0,0.15);
     `
     el.textContent = feature.properties?.name || id
-    el.style.zIndex = '1001'
+    el.style.zIndex = '500'
     const marker = new maplibregl.Marker({ element: el, anchor: 'center', offset: [0, -24] })
       .setLngLat(center)
       .addTo(map!)
@@ -976,7 +976,7 @@ const showPartitionLabels = async () => {
         white-space: nowrap;
         pointer-events: none;
         box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-        z-index: 1002;
+        z-index: 500;
       `
       const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
         .setLngLat(center)
