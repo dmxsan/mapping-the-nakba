@@ -601,7 +601,7 @@ const toggleBordersExpanded = () => {
   text-decoration: underline;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .layer-control-container {
     padding: 6px 8px;
   }

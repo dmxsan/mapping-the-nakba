@@ -647,7 +647,7 @@ const showEventRegion = (eventId: string) => {
 }
 
 const getMapPadding = () => {
-  if (window.innerWidth < 768) {
+  if (window.innerWidth < 1024) {
     return {
       top: Math.round(window.innerHeight * 0.1),
       bottom: Math.round(window.innerHeight * 0.27),
@@ -1492,7 +1492,7 @@ onUnmounted(() => {
   padding-bottom: 10px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .webgis-sidebar {
     position: absolute;
     bottom: 0;

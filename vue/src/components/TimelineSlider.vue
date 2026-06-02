@@ -483,7 +483,7 @@ defineExpose({
   color: white;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .timeline-header {
     margin-bottom: 4px;
   }
